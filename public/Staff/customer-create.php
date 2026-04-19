@@ -4,6 +4,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['admin', 'staff']);
 
+header('Location: customers.php?notice=self_registration_enabled');
+exit;
+
 $errors = [];
 $form = [
     'first_name' => '',
