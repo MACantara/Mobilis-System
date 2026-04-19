@@ -20,9 +20,77 @@ This is a functional prototype for the Mobilis vehicle rental and fleet manageme
 - Admin Support Inbox page to review stored support requests
 - Fallback demo data when MySQL is not yet connected
 
+## User Accounts & Authentication
+
+The system uses a role-based access control (RBAC) with three user types: Admin, Staff, and Customer. All user accounts are stored in the `User` table with password hashing using bcrypt.
+
+### User Roles and Permissions
+
+**Admin Role:**
+- Full system access and configuration
+- Can manage all vehicles, bookings, and customers
+- Can view and manage support requests
+- Can access all system settings
+- Can manage staff accounts
+
+**Staff Role:**
+- Can view and manage vehicles
+- Can create and manage bookings
+- Can view customer information
+- Can access reports and analytics
+- Can process support requests
+
+**Customer Role:**
+- Can only view their own bookings and tracked vehicles
+- Can track vehicles they have active/confirmed bookings for
+- Can view personal booking history and spending summaries
+- Can update personal profile information
+- Can submit support requests
+
+### Demo Accounts
+
+The following demo accounts are pre-configured in the database:
+
+| Role | Email | Password | Description |
+|------|-------|----------|-------------|
+| Admin | admin@mobilis.ph | password | Full system administrator access |
+| Staff | staff@mobilis.ph | password | Staff member with operational access |
+| Customer | customer@mobilis.ph | password | Sample customer account |
+
+**Note:** All demo accounts use the default password "password" for demonstration purposes. In production, passwords should be changed and proper security measures implemented.
+
+### Sample Customer Accounts
+
+The database includes sample customer accounts with booking history:
+
+- Maria Reyes (maria@email.com)
+- Juan dela Cruz (jdc@email.com)
+- Ana Lim (ana.lim@email.com)
+- Ramon Santos (ramon.s@email.com)
+- Pedro Cruz (pedz@email.com)
+- Lisa Garcia (lisag@email.com)
+- Bea Torres (bea.t@email.com)
+
+All sample customer accounts use the default password "password".
+
+### User Data Structure
+
+User data is stored in the `User` table with the following key fields:
+- `user_id`: Unique identifier
+- `first_name`: First name
+- `last_name`: Last name
+- `email`: Email address (used for login, must be unique)
+- `phone`: Contact phone number
+- `license_number`: Driver's license number (nullable for admin/staff)
+- `license_expiry`: License expiration date (nullable for admin/staff)
+- `address`: Physical address
+- `role`: User role (admin, staff, customer)
+- `password_hash`: Bcrypt hash of user password
+- `created_at`: Account creation timestamp
+
 ## Customers Module
 
-The Customers module provides comprehensive customer management capabilities:
+The Customers module provides comprehensive customer management capabilities for staff and admin users:
 
 ### Customer Information Tracked
 - **Personal Details**: Full name, email address, phone number
@@ -36,22 +104,6 @@ The Customers module provides comprehensive customer management capabilities:
 - **Live Tracking**: Track rented vehicles in real-time with GPS coordinates
 - **Booking Management**: View current and past bookings with status updates
 - **Profile Management**: Update personal information and contact details
-
-### Customer Access Levels
-- **Customer Role**: Can only view their own bookings and tracked vehicles
-- **Live Tracking Access**: Customers can track vehicles they have active/confirmed bookings for
-- **Booking Restrictions**: Customers can only see vehicles associated with their active bookings in the tracking view
-
-### Customer Data Structure
-Customer data is stored in the `Customer` table with the following key fields:
-- `customer_id`: Unique identifier
-- `name`: Full name
-- `email`: Email address (used for login)
-- `phone`: Contact phone number
-- `address`: Physical address
-- `city`: City of residence
-- `zip_code`: Postal code
-- `created_at`: Account creation timestamp
 
 ## Project Structure
 
