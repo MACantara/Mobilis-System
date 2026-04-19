@@ -106,8 +106,6 @@ function setupCustomerProfilePanel() {
     profileNoShows,
     recentBookingsList,
     profileMessageBtn,
-    profileEditBtn,
-    profileBookingBtn,
   ];
 
   if (requiredNodes.some((node) => !node)) return;
@@ -154,7 +152,12 @@ function setupCustomerProfilePanel() {
     const email = String(customer.email || '').trim();
     const name = String(customer.name || '').trim();
     profileMessageBtn.href = 'mailto:' + email + '?subject=' + encodeURIComponent('Mobilis customer support: ' + name);
-    profileEditBtn.href = '/Staff/customer-edit.php?id=' + encodeURIComponent(String(customerId));
+    if (profileEditBtn) {
+      profileEditBtn.href = '/Staff/customer-edit.php?id=' + encodeURIComponent(String(customerId));
+    }
+    if (profileBookingBtn) {
+      profileBookingBtn.href = '/Staff/booking-create.php?user_id=' + encodeURIComponent(String(customerId));
+    }
 
     recentBookingsList.innerHTML = '';
     const recent = Array.isArray(customer.recent_bookings) ? customer.recent_bookings : [];
@@ -604,7 +607,7 @@ function trackingMarkerColor(status) {
   return '#17966e';
 }
 
-function renderTrackingList(listEl, vehicles) {
+function renderTrackingList(listEl, vehicles, listLimit) {
   if (!listEl) return;
 
   listEl.innerHTML = '';
@@ -616,7 +619,10 @@ function renderTrackingList(listEl, vehicles) {
     return;
   }
 
-  vehicles.forEach((vehicle) => {
+  const limit = Number.isFinite(Number(listLimit)) ? Math.max(1, Number(listLimit)) : 10;
+  const visibleVehicles = vehicles.slice(0, limit);
+
+  visibleVehicles.forEach((vehicle) => {
     const li = document.createElement('li');
 
     const details = document.createElement('div');
@@ -695,6 +701,7 @@ async function setupLiveTrackingMap(mapEl) {
   const endpoint = mapEl.dataset.trackingEndpoint || '/api/tracking.php';
   const listTargetId = mapEl.dataset.trackingListTarget || '';
   const statusTargetId = mapEl.dataset.trackingStatusTarget || '';
+  const listLimit = Number(mapEl.dataset.trackingListLimit || 10);
   const vehicleIdsRaw = mapEl.dataset.trackingVehicleIds || '';
   const allowedVehicleIds = new Set(
     vehicleIdsRaw
@@ -742,7 +749,7 @@ async function setupLiveTrackingMap(mapEl) {
       }
 
       updateTrackingMarkers(map, markerStore, vehicles);
-      renderTrackingList(listEl, vehicles);
+      renderTrackingList(listEl, vehicles, listLimit);
 
       if (!hasAutoFitted && vehicles.length > 0) {
         const bounds = window.L.latLngBounds(vehicles.map((vehicle) => [Number(vehicle.lat), Number(vehicle.lng)]));
