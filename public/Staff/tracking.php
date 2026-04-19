@@ -6,6 +6,7 @@ requireAuth(['admin', 'staff']);
 
 $snapshot = getLiveTrackingSnapshot(currentUser() ?? [], 200, 5);
 $trackedVehicles = (array) ($snapshot['vehicles'] ?? []);
+$trackedVehiclesPreview = array_slice($trackedVehicles, 0, 10);
 
 viewBegin('app', appLayoutData('Live tracking', 'tracking'));
 ?>
@@ -25,6 +26,7 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking'));
             data-tracking-map
             data-tracking-endpoint="/api/tracking.php"
             data-tracking-list-target="staff-tracked-vehicles"
+            data-tracking-list-limit="10"
             data-tracking-status-target="staff-tracking-status"></div>
         <p id="staff-tracking-status" class="muted tracking-status-note">
             Simulated locations refresh every <?= (int) ($snapshot['step_seconds'] ?? 5) ?> seconds.
@@ -37,9 +39,10 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking'));
     <article class="card">
         <div class="card-header">
             <h4>Tracked vehicles</h4>
+            <span class="muted">Showing first 10 (scroll for more)</span>
         </div>
-        <ul id="staff-tracked-vehicles" class="list clean">
-            <?php foreach ($trackedVehicles as $vehicle): ?>
+        <ul id="staff-tracked-vehicles" class="list clean tracking-list-scroll">
+            <?php foreach ($trackedVehiclesPreview as $vehicle): ?>
                 <?php $status = strtolower((string) ($vehicle['status'] ?? 'available')); ?>
                 <li>
                     <div>
