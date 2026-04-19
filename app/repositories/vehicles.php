@@ -201,10 +201,10 @@ if (!function_exists('getFleetByCategory')) {
     {
         if (!dbConnected()) {
             return [
+                ['category_name' => 'Pick-ups', 'utilization' => 80],
                 ['category_name' => 'Sedans', 'utilization' => 70],
                 ['category_name' => 'SUVs', 'utilization' => 55],
                 ['category_name' => 'Vans', 'utilization' => 40],
-                ['category_name' => 'Pick-ups', 'utilization' => 80],
             ];
         }
 
@@ -216,7 +216,7 @@ if (!function_exists('getFleetByCategory')) {
                 FROM VehicleCategory vc
                 LEFT JOIN Vehicle v ON v.category_id = vc.category_id
                 GROUP BY vc.category_id, vc.category_name
-                ORDER BY vc.category_name ASC
+                ORDER BY utilization DESC
             ";
             return db()->query($sql)->fetchAll();
         } catch (Throwable $e) {
