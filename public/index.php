@@ -21,7 +21,7 @@ if (isAuthenticated()) {
 </head>
 <body class="landing-body">
 <main class="landing-shell">
-    <nav class="landing-nav reveal">
+    <nav class="landing-nav">
         <a href="/index.php" class="brand">
             <img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
