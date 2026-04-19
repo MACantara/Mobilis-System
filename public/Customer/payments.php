@@ -20,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$accountLinked) {
             $errors[] = 'Your account is not linked to a customer profile yet.';
         } else {
-            $result = markCustomerInvoicePaid($customerId, $invoiceId);
+            $paymentMethod = strtolower(trim((string) ($_POST['payment_method'] ?? 'cash')));
+            $result = markCustomerInvoicePaid($customerId, $invoiceId, $paymentMethod);
             if (($result['ok'] ?? false) === true) {
                 $notice = (string) ($result['notice'] ?? 'Payment recorded successfully.');
             } else {
@@ -72,13 +73,14 @@ viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
                     <th>Vehicle</th>
                     <th>Issued</th>
                     <th>Total</th>
+                    <th>Method</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
             <?php if ($payments === []): ?>
-                <tr><td colspan="6" class="muted">No payments yet.</td></tr>
+                <tr><td colspan="7" class="muted">No payments yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($payments as $payment): ?>
                     <?php $status = strtolower(str_replace(' ', '-', (string) ($payment['payment_status'] ?? 'unpaid'))); ?>
@@ -87,12 +89,19 @@ viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
                         <td><?= htmlspecialchars((string) $payment['vehicle']) ?></td>
                         <td><?= htmlspecialchars((string) $payment['issued_at']) ?></td>
                         <td><strong>P<?= number_format((float) $payment['total_amount'], 2) ?></strong></td>
+                        <td><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($payment['payment_method'] ?? 'pending')))) ?></td>
                         <td><span class="pill <?= htmlspecialchars($status) ?>"><?= htmlspecialchars(ucfirst((string) $payment['payment_status'])) ?></span></td>
                         <td>
                             <?php if (in_array($status, ['unpaid', 'partial'], true)): ?>
                                 <form method="post" class="booking-actions" style="justify-content:flex-start;">
                                     <input type="hidden" name="action" value="pay">
                                     <input type="hidden" name="invoice_id" value="<?= (int) ($payment['invoice_id'] ?? 0) ?>">
+                                    <select name="payment_method" required>
+                                        <option value="cash">Cash</option>
+                                        <option value="gcash">GCash</option>
+                                        <option value="card">Card</option>
+                                        <option value="bank_transfer">Bank transfer</option>
+                                    </select>
                                     <button type="submit" class="primary-btn booking-mini-btn">Pay now</button>
                                 </form>
                             <?php else: ?>
