@@ -32,21 +32,21 @@ This is a functional prototype for the Mobilis vehicle rental and fleet manageme
 
 Comprehensive technical documentation is available in the `docs/` folder:
 
-- `docs/documentation-index.md` (master index)
-- `docs/technology-stack.md`
-- `docs/system-architecture.md`
-- `docs/eerd-structure.md`
-- `docs/database-design-schema.md`
-- `docs/relationship-logic-data-structure.md`
-- `docs/database-cardinality-rules.md`
-- `docs/data-dictionary.md`
-- `docs/sql-scripts-ddl-dml.md`
-- `docs/connectivity-php-mysql.md`
-- `docs/api-reference.md`
-- `docs/module-map.md`
-- `docs/developer-guide.md`
-- `docs/database-quick-reference.md`
-- `docs/auth-support-db.md`
+- [documentation-index.md](docs/documentation-index.md) (master index)
+- [technology-stack.md](docs/technology-stack.md)
+- [system-architecture.md](docs/system-architecture.md)
+- [eerd-structure.md](docs/eerd-structure.md)
+- [database-design-schema.md](docs/database-design-schema.md)
+- [relationship-logic-data-structure.md](docs/relationship-logic-data-structure.md)
+- [database-cardinality-rules.md](docs/database-cardinality-rules.md)
+- [data-dictionary.md](docs/data-dictionary.md)
+- [sql-scripts-ddl-dml.md](docs/sql-scripts-ddl-dml.md)
+- [connectivity-php-mysql.md](docs/connectivity-php-mysql.md)
+- [api-reference.md](docs/api-reference.md)
+- [module-map.md](docs/module-map.md)
+- [developer-guide.md](docs/developer-guide.md)
+- [database-quick-reference.md](docs/database-quick-reference.md)
+- [auth-support-db.md](docs/auth-support-db.md)
 
 ## User Accounts & Authentication
 
