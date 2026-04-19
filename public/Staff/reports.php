@@ -141,7 +141,7 @@ viewBegin('app', appLayoutData('Reports', 'reports'));
         </div>
     </article>
 
-    <article class="card reports-chart-card reports-chart-wide reports-chart-wide-mid">
+    <article class="card reports-chart-card reports-chart-compact">
         <div class="card-header">
             <h4>Top Customers by Revenue</h4>
             <span class="muted">Highest value customers</span>

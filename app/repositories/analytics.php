@@ -98,9 +98,26 @@ if (!function_exists('getOverdueMaintenanceAlerts')) {
     function getOverdueMaintenanceAlerts(): array
     {
         try {
-            $sql = "SELECT v.name as vehicle, v.mileage_km, m.last_service, m.service_type 
-                    FROM Vehicle v 
-                    LEFT JOIN Maintenance m ON v.vehicle_id = m.vehicle_id 
+            $sql = "SELECT
+                        CONCAT(v.brand, ' ', v.model) AS vehicle,
+                        v.mileage_km,
+                        lm.last_service,
+                        lm.service_type
+                    FROM Vehicle v
+                    LEFT JOIN (
+                        SELECT
+                            latest.vehicle_id,
+                            latest.last_service,
+                            ml.service_type
+                        FROM (
+                            SELECT vehicle_id, MAX(service_date) AS last_service
+                            FROM MaintenanceLog
+                            GROUP BY vehicle_id
+                        ) latest
+                        LEFT JOIN MaintenanceLog ml
+                            ON ml.vehicle_id = latest.vehicle_id
+                           AND ml.service_date = latest.last_service
+                    ) lm ON lm.vehicle_id = v.vehicle_id
                     ORDER BY v.vehicle_id DESC";
             $stmt = db()->query($sql);
             $rows = $stmt->fetchAll();
@@ -169,19 +186,23 @@ if (!function_exists('getBookingTrends')) {
     function getBookingTrends(string $period = 'month'): array
     {
         try {
-            $sql = "SELECT DATE(r.start_date) as date, COUNT(*) as count, SUM(r.total_amount) as revenue 
-                    FROM Rental r 
+            $sql = "SELECT
+                        DATE(r.pickup_date) AS date,
+                        COUNT(*) AS count,
+                        COALESCE(SUM(i.total_amount), 0) AS revenue
+                    FROM Rental r
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
                     WHERE r.status != 'cancelled'";
             
             if ($period === 'week') {
-                $sql .= " AND r.start_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                $sql .= " AND r.pickup_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
             } elseif ($period === 'month') {
-                $sql .= " AND r.start_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+                $sql .= " AND r.pickup_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
             } elseif ($period === 'year') {
-                $sql .= " AND r.start_date >= DATE_SUB(NOW(), INTERVAL 365 DAY)";
+                $sql .= " AND r.pickup_date >= DATE_SUB(NOW(), INTERVAL 365 DAY)";
             }
             
-            $sql .= " GROUP BY DATE(r.start_date) ORDER BY date DESC";
+            $sql .= " GROUP BY DATE(r.pickup_date) ORDER BY date DESC";
             
             $stmt = db()->query($sql);
             $rows = $stmt->fetchAll();
@@ -236,11 +257,17 @@ if (!function_exists('getVehiclePerformance')) {
     function getVehiclePerformance(): array
     {
         try {
-            $sql = "SELECT v.name, v.type, COUNT(r.rental_id) as rentals, SUM(r.total_amount) as revenue
+            $sql = "SELECT
+                        CONCAT(v.brand, ' ', v.model) AS name,
+                        vc.category_name AS type,
+                        COUNT(r.rental_id) AS rentals,
+                        COALESCE(SUM(i.total_amount), 0) AS revenue
                     FROM Vehicle v
-                    LEFT JOIN Rental r ON v.vehicle_id = r.vehicle_id AND r.status != 'cancelled'
-                    GROUP BY v.vehicle_id
-                    ORDER BY revenue DESC";
+                    INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
+                    LEFT JOIN Rental r ON r.vehicle_id = v.vehicle_id AND r.status != 'cancelled'
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                    GROUP BY v.vehicle_id, v.brand, v.model, vc.category_name
+                    ORDER BY revenue DESC, rentals DESC";
             $stmt = db()->query($sql);
             $rows = $stmt->fetchAll();
             
@@ -281,9 +308,13 @@ if (!function_exists('getBookingStatusBreakdown')) {
     function getBookingStatusBreakdown(): array
     {
         try {
-            $sql = "SELECT status, COUNT(*) as count, SUM(total_amount) as total
-                    FROM Rental
-                    GROUP BY status";
+            $sql = "SELECT
+                        r.status,
+                        COUNT(*) AS count,
+                        COALESCE(SUM(i.total_amount), 0) AS total
+                    FROM Rental r
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                    GROUP BY r.status";
             $stmt = db()->query($sql);
             $rows = $stmt->fetchAll();
             
@@ -302,9 +333,10 @@ if (!function_exists('getAverageRevenuePerBooking')) {
     function getAverageRevenuePerBooking(): float
     {
         try {
-            $sql = "SELECT AVG(total_amount) as avg_revenue
-                    FROM Rental
-                    WHERE status != 'cancelled'";
+            $sql = "SELECT AVG(i.total_amount) AS avg_revenue
+                    FROM Rental r
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                    WHERE r.status != 'cancelled'";
             $stmt = db()->query($sql);
             $row = $stmt->fetch();
             
@@ -319,10 +351,15 @@ if (!function_exists('getRevenueByVehicleType')) {
     function getRevenueByVehicleType(): array
     {
         try {
-            $sql = "SELECT v.type, SUM(r.total_amount) as total_revenue, COUNT(r.rental_id) as rentals
-                    FROM Vehicle v
-                    LEFT JOIN Rental r ON v.vehicle_id = r.vehicle_id AND r.status != 'cancelled'
-                    GROUP BY v.type
+            $sql = "SELECT
+                        vc.category_name AS type,
+                        COALESCE(SUM(i.total_amount), 0) AS total_revenue,
+                        COUNT(r.rental_id) AS rentals
+                    FROM VehicleCategory vc
+                    LEFT JOIN Vehicle v ON v.category_id = vc.category_id
+                    LEFT JOIN Rental r ON r.vehicle_id = v.vehicle_id AND r.status != 'cancelled'
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                    GROUP BY vc.category_id, vc.category_name
                     ORDER BY total_revenue DESC";
             $stmt = db()->query($sql);
             $rows = $stmt->fetchAll();
