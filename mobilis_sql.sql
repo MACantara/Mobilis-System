@@ -235,6 +235,50 @@ WHERE v.status = 'rented'
       AND r.status = 'active'
   );
 
+-- Add richer time-series rentals so reports have denser, date-relative data.
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+WITH RECURSIVE rental_seed AS (
+  SELECT 1 AS n
+  UNION ALL
+  SELECT n + 1
+  FROM rental_seed
+  WHERE n < 54
+)
+SELECT
+  4 + MOD(n, 7) AS user_id,
+  1 + MOD(n, 48) AS vehicle_id,
+  DATE_SUB(CURDATE(), INTERVAL (n + 24) DAY) AS pickup_date,
+  DATE_ADD(DATE_SUB(CURDATE(), INTERVAL (n + 24) DAY), INTERVAL (2 + MOD(n, 4)) DAY) AS return_date,
+  CASE
+    WHEN MOD(n, 9) = 0 THEN NULL
+    WHEN MOD(n, 7) = 0 THEN DATE_ADD(DATE_ADD(DATE_SUB(CURDATE(), INTERVAL (n + 24) DAY), INTERVAL (2 + MOD(n, 4)) DAY), INTERVAL 1 DAY)
+    ELSE DATE_ADD(DATE_SUB(CURDATE(), INTERVAL (n + 24) DAY), INTERVAL (2 + MOD(n, 4)) DAY)
+  END AS actual_return,
+  CASE
+    WHEN MOD(n, 9) = 0 THEN 'cancelled'
+    ELSE 'completed'
+  END AS status,
+  CONCAT('Trend seed rental #', LPAD(n, 2, '0')) AS notes
+FROM rental_seed;
+
+-- Seed a few additional near-term records to diversify booking status charts.
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 18 AS vehicle_id, DATE_ADD(CURDATE(), INTERVAL 2 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 5 DAY) AS return_date, NULL AS actual_return, 'pending' AS status, 'Trend seed pending future booking' AS notes
+  UNION ALL SELECT 5, 21, DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Trend seed active short-haul booking'
+  UNION ALL SELECT 6, 24, DATE_ADD(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 6 DAY), NULL, 'pending', 'Trend seed pending long-haul booking'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
 -- ── 5. MaintenanceLog ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS MaintenanceLog (
   log_id       INT UNSIGNED   NOT NULL AUTO_INCREMENT,
@@ -306,6 +350,41 @@ WHERE NOT EXISTS (
   FROM Invoice i
   WHERE i.rental_id = seed.rental_id
 );
+
+-- Add additional invoices for trend-seeded rentals with mixed payment statuses.
+INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status, issued_at)
+SELECT
+  r.rental_id,
+  ROUND(vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1), 2) AS base_amount,
+  CASE WHEN MOD(r.rental_id, 11) = 0 THEN 450.00 ELSE 0.00 END AS late_fee,
+  CASE WHEN MOD(r.rental_id, 17) = 0 THEN 700.00 ELSE 0.00 END AS damage_fee,
+  ROUND(
+    vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1)
+    + CASE WHEN MOD(r.rental_id, 11) = 0 THEN 450.00 ELSE 0.00 END
+    + CASE WHEN MOD(r.rental_id, 17) = 0 THEN 700.00 ELSE 0.00 END,
+    2
+  ) AS total_amount,
+  CASE
+    WHEN MOD(r.rental_id, 8) = 0 THEN 'partial'
+    WHEN MOD(r.rental_id, 6) = 0 THEN 'unpaid'
+    ELSE 'paid'
+  END AS payment_status,
+  TIMESTAMP(
+    DATE_ADD(r.return_date, INTERVAL 1 DAY),
+    SEC_TO_TIME(28800 + MOD(r.rental_id, 36000))
+  ) AS issued_at
+FROM Rental r
+JOIN Vehicle v
+  ON v.vehicle_id = r.vehicle_id
+JOIN VehicleCategory vc
+  ON vc.category_id = v.category_id
+WHERE r.notes LIKE 'Trend seed rental #%'
+  AND r.status = 'completed'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM Invoice i
+    WHERE i.rental_id = r.rental_id
+  );
 
 -- ── 7. AdminContactMessage ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS AdminContactMessage (
