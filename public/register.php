@@ -11,9 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = strtolower(trim((string) ($_POST['email'] ?? '')));
     $phone = trim((string) ($_POST['phone'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
-    $licenseNumber = trim((string) ($_POST['license_number'] ?? ''));
-    $licenseExpiry = trim((string) ($_POST['license_expiry'] ?? ''));
-    $address = trim((string) ($_POST['address'] ?? ''));
+    $confirmPassword = (string) ($_POST['confirm_password'] ?? '');
 
     if ($fullName === '') {
         $errors[] = 'Please provide your full name.';
@@ -27,8 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Please provide a contact number.';
     }
 
-    if ($password === '' || strlen($password) < 6) {
-        $errors[] = 'Please provide a password with at least 6 characters.';
+    if ($password === '' || strlen($password) < 8) {
+        $errors[] = 'Please provide a password with at least 8 characters.';
+    }
+
+    if ($confirmPassword === '' || $password !== $confirmPassword) {
+        $errors[] = 'Passwords do not match.';
     }
 
     if ($errors === []) {
@@ -53,16 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Insert new user
                     $stmt = db()->prepare(
                         "INSERT INTO User (first_name, last_name, email, phone, license_number, license_expiry, address, role, password_hash)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'customer', ?)"
+                        VALUES (?, ?, ?, ?, NULL, NULL, NULL, 'customer', ?)"
                     );
                     $stmt->execute([
                         $firstName,
                         $lastName,
                         $email,
                         $phone,
-                        $licenseNumber !== '' ? $licenseNumber : null,
-                        $licenseExpiry !== '' ? $licenseExpiry : null,
-                        $address !== '' ? $address : null,
                         $passwordHash
                     ]);
 
@@ -120,21 +119,64 @@ viewBegin('auth', authLayoutData('Create Account'));
                 <input id="register-phone" type="tel" name="phone" placeholder="+63 917 123 4567" required>
             </label>
             <label for="register-password">Password
-                <input id="register-password" type="password" name="password" placeholder="At least 6 characters" required minlength="6">
+                <div class="password-field-wrapper">
+                    <input id="register-password" type="password" name="password" placeholder="At least 8 characters" required minlength="8">
+                    <button type="button" class="password-toggle-btn" data-target="register-password">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon" style="display: none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 5.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
             </label>
-            <label for="register-license">Driver's license number (optional)
-                <input id="register-license" type="text" name="license_number" placeholder="N01-23-456789">
-            </label>
-            <label for="register-expiry">License expiry date (optional)
-                <input id="register-expiry" type="date" name="license_expiry">
-            </label>
-            <label for="register-address" class="full">Address (optional)
-                <textarea id="register-address" name="address" rows="3" placeholder="Makati City, Metro Manila"></textarea>
+            <label for="register-confirm-password">Confirm password
+                <div class="password-field-wrapper">
+                    <input id="register-confirm-password" type="password" name="confirm_password" placeholder="Confirm your password" required minlength="8">
+                    <button type="button" class="password-toggle-btn" data-target="register-confirm-password">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-off-icon" style="display: none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 5.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
             </label>
             <button type="submit" class="primary-btn full">Create account</button>
         </form>
 
         <p class="auth-footnote">Already have an account? <a href="/login.php" class="text-link">Sign in</a></p>
     <?php viewAuthFormPanelEnd(); ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordToggleButtons = document.querySelectorAll('.password-toggle-btn');
+
+    passwordToggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const eyeIcon = this.querySelector('.eye-icon');
+            const eyeOffIcon = this.querySelector('.eye-off-icon');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeOffIcon.style.display = 'block';
+            } else {
+                input.type = 'password';
+                eyeIcon.style.display = 'block';
+                eyeOffIcon.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 <?php viewEnd();
 ?>

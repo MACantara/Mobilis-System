@@ -1887,6 +1887,29 @@ td p {
   grid-column: 1 / -1;
 }
 
+.auth-form-grid .password-field-wrapper {
+  position: relative;
+}
+
+.auth-form-grid .password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-form-grid .password-toggle-btn:hover {
+  color: var(--brand);
+}
+
 .auth-form-panel textarea,
 .auth-form-grid textarea {
   resize: vertical;
