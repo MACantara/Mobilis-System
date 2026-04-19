@@ -1,0 +1,101 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../../app/bootstrap.php';
+requireAuth(['customer']);
+
+$user = currentUser();
+$customerEmail = $user['email'] ?? '';
+$customer = getCustomerByEmail($customerEmail);
+
+if ($customer === null) {
+    header('Location: dashboard.php');
+    exit;
+}
+
+$customerId = (int) ($customer['customer_id'] ?? 0);
+$vehicles = getAvailableVehicles(200);
+
+$errors = [];
+$success = '';
+$form = [
+    'vehicle_id' => (string) ((int) ($_GET['vehicle_id'] ?? 0)),
+    'pickup_date' => date('Y-m-d'),
+    'return_date' => date('Y-m-d', strtotime('+1 day')),
+    'notes' => '',
+];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $form['vehicle_id'] = (string) ((int) ($_POST['vehicle_id'] ?? 0));
+    $form['pickup_date'] = trim((string) ($_POST['pickup_date'] ?? ''));
+    $form['return_date'] = trim((string) ($_POST['return_date'] ?? ''));
+    $form['notes'] = trim((string) ($_POST['notes'] ?? ''));
+
+    $result = createRentalBooking(
+        $customerId,
+        (int) $form['vehicle_id'],
+        $form['pickup_date'],
+        $form['return_date'],
+        $form['notes']
+    );
+
+    if (($result['ok'] ?? false) === true) {
+        header('Location: bookings.php?notice=booking_created');
+        exit;
+    }
+
+    $errors[] = (string) ($result['error'] ?? 'Could not create booking.');
+}
+
+renderPageTop('New booking', 'bookings', ['role' => 'customer']);
+?>
+<section class="card customer-form-card">
+    <div class="card-header">
+        <h3>Book a vehicle</h3>
+        <a class="ghost-link" href="bookings.php">Back</a>
+    </div>
+
+    <?php if ($success !== ''): ?>
+        <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+
+    <?php if ($errors !== []): ?>
+        <div class="alert-error">
+            <?php foreach ($errors as $error): ?>
+                <p><?= htmlspecialchars($error) ?></p>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" class="customer-form-grid">
+        <label>Vehicle
+            <select name="vehicle_id" required>
+                <option value="">Select vehicle</option>
+                <?php foreach ($vehicles as $vehicle): ?>
+                    <?php $id = (int) ($vehicle['vehicle_id'] ?? 0); ?>
+                    <option value="<?= $id ?>" <?= (string) $id === $form['vehicle_id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars((string) ($vehicle['name'] ?? '')) ?> (<?= htmlspecialchars((string) ($vehicle['plate'] ?? '')) ?>) - P<?= number_format((float) ($vehicle['daily_rate'] ?? 0), 0) ?>/day
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+
+        <label>Pickup date
+            <input type="date" name="pickup_date" value="<?= htmlspecialchars($form['pickup_date']) ?>" required min="<?= date('Y-m-d') ?>">
+        </label>
+
+        <label>Return date
+            <input type="date" name="return_date" value="<?= htmlspecialchars($form['return_date']) ?>" required min="<?= date('Y-m-d', strtotime('+1 day')) ?>">
+        </label>
+
+        <label class="full">Notes (optional)
+            <textarea name="notes" rows="3" placeholder="Any special requests or notes..."><?= htmlspecialchars($form['notes']) ?></textarea>
+        </label>
+
+        <div class="customer-form-actions full">
+            <a class="ghost-link button-like" href="bookings.php">Cancel</a>
+            <button type="submit" class="primary-btn">Book vehicle</button>
+        </div>
+    </form>
+</section>
+<?php renderPageBottom(); ?>

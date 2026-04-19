@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/bootstrap.php';
-requireAuth(['admin', 'staff', 'customer']);
+requireAuth(['admin', 'staff']);
 
 $metrics = getDashboardMetrics();
 $vehicleStatus = getVehicleStatusList();
