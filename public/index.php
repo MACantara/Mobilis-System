@@ -32,10 +32,6 @@ if (isAuthenticated()) {
     </nav>
 
     <section class="landing-hero reveal reveal-delay-1">
-        <div class="brand hero-brand">
-            <img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
-        </div>
-
         <div class="landing-hero-copy">
             <h2>Book faster, travel smarter, and stay in control of every ride.</h2>
             <p>Mobilis helps customers reserve trusted vehicles, monitor booking status in real time, and get transparent billing from pickup to return.</p>
