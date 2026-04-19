@@ -2311,12 +2311,18 @@ td p {
 .landing-cta::before {
   content: "";
   position: absolute;
-  top: -110px;
+  top: 18%;
   left: 50%;
-  transform: translateX(-50%);
-  width: min(760px, 94%);
-  height: 280px;
-  background: radial-gradient(circle at center, rgba(30, 177, 126, 0.32), transparent 68%);
+  transform: translate(-50%, -50%);
+  width: min(560px, 88%);
+  aspect-ratio: 1 / 1;
+  background: radial-gradient(
+    circle at center,
+    rgba(30, 177, 126, 0.34) 0%,
+    rgba(30, 177, 126, 0.2) 38%,
+    rgba(30, 177, 126, 0) 74%
+  );
+  z-index: 0;
   pointer-events: none;
 }
 
