@@ -12,15 +12,26 @@ if (!function_exists('createRentalBooking')) {
             return ['ok' => false, 'error' => 'Please select valid customer and vehicle.'];
         }
 
-        if ($pickupDate === '' || $returnDate === '' || $returnDate < $pickupDate) {
+        $pickupTs = strtotime($pickupDate);
+        $returnTs = strtotime($returnDate);
+
+        if ($pickupDate === '' || $returnDate === '' || $pickupTs === false || $returnTs === false || $returnTs < $pickupTs) {
             return ['ok' => false, 'error' => 'Please provide a valid pickup and return date.'];
         }
+
+        $days = max(1, (int) ceil(($returnTs - $pickupTs) / 86400));
 
         try {
             $pdo = db();
             $pdo->beginTransaction();
 
-            $vehicleStmt = $pdo->prepare('SELECT status FROM Vehicle WHERE vehicle_id = :vehicle_id FOR UPDATE');
+            $vehicleStmt = $pdo->prepare(
+                'SELECT v.status, vc.daily_rate
+                 FROM Vehicle v
+                 INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
+                 WHERE v.vehicle_id = :vehicle_id
+                 FOR UPDATE'
+            );
             $vehicleStmt->execute(['vehicle_id' => $vehicleId]);
             $vehicle = $vehicleStmt->fetch();
 
@@ -29,9 +40,9 @@ if (!function_exists('createRentalBooking')) {
                 return ['ok' => false, 'error' => 'Vehicle not found.'];
             }
 
-            if (($vehicle['status'] ?? '') === 'maintenance') {
+            if (($vehicle['status'] ?? '') !== 'available') {
                 $pdo->rollBack();
-                return ['ok' => false, 'error' => 'Selected vehicle is under maintenance.'];
+                return ['ok' => false, 'error' => 'Selected vehicle is not available for booking.'];
             }
 
             $insertRental = $pdo->prepare(
@@ -47,6 +58,18 @@ if (!function_exists('createRentalBooking')) {
             ]);
 
             $rentalId = (int) $pdo->lastInsertId();
+
+            $baseAmount = (float) ($vehicle['daily_rate'] ?? 0) * $days;
+            $insertInvoice = $pdo->prepare(
+                'INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status)
+                 VALUES (:rental_id, :base_amount, 0, 0, :total_amount, :payment_status)'
+            );
+            $insertInvoice->execute([
+                'rental_id' => $rentalId,
+                'base_amount' => $baseAmount,
+                'total_amount' => $baseAmount,
+                'payment_status' => 'unpaid',
+            ]);
 
             $updateVehicle = $pdo->prepare("UPDATE Vehicle SET status = 'rented' WHERE vehicle_id = :vehicle_id");
             $updateVehicle->execute(['vehicle_id' => $vehicleId]);
@@ -84,6 +107,7 @@ if (!function_exists('getBookings')) {
                     CONCAT(c.first_name, ' ', c.last_name) AS customer,
                     c.email AS customer_email,
                     r.vehicle_id,
+                    i.invoice_id,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
                     r.pickup_date,
                     r.return_date,
@@ -273,7 +297,9 @@ if (!function_exists('getCustomerBookings')) {
             $sql = "
                 SELECT
                     r.rental_id,
+                    r.customer_id,
                     r.vehicle_id,
+                    i.invoice_id,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
                     r.pickup_date,
                     r.return_date,
@@ -307,6 +333,168 @@ if (!function_exists('getCustomerBookings')) {
             return $rows;
         } catch (Throwable $e) {
             return [];
+        }
+    }
+}
+
+if (!function_exists('getCustomerBookingsByCustomerId')) {
+    function getCustomerBookingsByCustomerId(int $customerId, int $limit = 10): array
+    {
+        if ($customerId <= 0) {
+            return [];
+        }
+
+        if (!dbConnected()) {
+            return array_values(array_filter(
+                getBookings(max($limit, 500)),
+                static fn(array $booking): bool => (int) ($booking['customer_id'] ?? 0) === $customerId
+            ));
+        }
+
+        try {
+            $sql = "
+                SELECT
+                    r.rental_id,
+                    r.customer_id,
+                    r.vehicle_id,
+                    i.invoice_id,
+                    CONCAT(v.brand, ' ', v.model) AS vehicle,
+                    r.pickup_date,
+                    r.return_date,
+                    r.status,
+                    i.payment_status,
+                    GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1) AS days,
+                    COALESCE(i.total_amount, vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1)) AS total
+                FROM Rental r
+                INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
+                INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
+                LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                WHERE r.customer_id = :customer_id
+                ORDER BY r.pickup_date DESC
+                LIMIT :limit
+            ";
+            $stmt = db()->prepare($sql);
+            $stmt->bindValue(':customer_id', $customerId, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $rows = $stmt->fetchAll();
+            foreach ($rows as &$row) {
+                if (($row['status'] ?? '') === 'active') {
+                    $row['status'] = 'confirmed';
+                }
+                if (!isset($row['payment_status']) || $row['payment_status'] === null) {
+                    $row['payment_status'] = 'unpaid';
+                }
+            }
+            return $rows;
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('getCustomerBookingById')) {
+    function getCustomerBookingById(int $customerId, int $rentalId): ?array
+    {
+        if ($customerId <= 0 || $rentalId <= 0) {
+            return null;
+        }
+
+        foreach (getCustomerBookingsByCustomerId($customerId, 500) as $booking) {
+            if ((int) ($booking['rental_id'] ?? 0) === $rentalId) {
+                return $booking;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('cancelCustomerBooking')) {
+    function cancelCustomerBooking(int $customerId, int $rentalId, string $notes = ''): array
+    {
+        if ($customerId <= 0 || $rentalId <= 0) {
+            return ['ok' => false, 'error' => 'Invalid booking reference.'];
+        }
+
+        if (!dbConnected()) {
+            $booking = getCustomerBookingById($customerId, $rentalId);
+            if ($booking === null) {
+                return ['ok' => false, 'error' => 'Booking not found.'];
+            }
+
+            $status = strtolower((string) ($booking['status'] ?? 'pending'));
+            if ($status === 'completed' || $status === 'cancelled') {
+                return ['ok' => false, 'error' => 'This booking can no longer be cancelled.'];
+            }
+
+            return ['ok' => true];
+        }
+
+        try {
+            $pdo = db();
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare(
+                'SELECT rental_id, vehicle_id, status, notes
+                 FROM Rental
+                 WHERE rental_id = :rental_id AND customer_id = :customer_id
+                 FOR UPDATE'
+            );
+            $stmt->execute([
+                'rental_id' => $rentalId,
+                'customer_id' => $customerId,
+            ]);
+            $booking = $stmt->fetch();
+
+            if (!$booking) {
+                $pdo->rollBack();
+                return ['ok' => false, 'error' => 'Booking not found.'];
+            }
+
+            $status = strtolower((string) ($booking['status'] ?? 'pending'));
+            if ($status === 'completed' || $status === 'cancelled') {
+                $pdo->rollBack();
+                return ['ok' => false, 'error' => 'This booking can no longer be cancelled.'];
+            }
+
+            $existingNotes = trim((string) ($booking['notes'] ?? ''));
+            $cancelNotes = trim($notes);
+            $mergedNotes = $existingNotes;
+            if ($cancelNotes !== '') {
+                $mergedNotes = $existingNotes === ''
+                    ? 'Customer cancellation: ' . $cancelNotes
+                    : $existingNotes . "\nCustomer cancellation: " . $cancelNotes;
+            }
+
+            $updateRental = $pdo->prepare(
+                'UPDATE Rental
+                 SET status = :status, notes = :notes
+                 WHERE rental_id = :rental_id'
+            );
+            $updateRental->execute([
+                'status' => 'cancelled',
+                'notes' => $mergedNotes,
+                'rental_id' => $rentalId,
+            ]);
+
+            $updateVehicle = $pdo->prepare(
+                "UPDATE Vehicle
+                 SET status = 'available'
+                 WHERE vehicle_id = :vehicle_id AND status = 'rented'"
+            );
+            $updateVehicle->execute([
+                'vehicle_id' => (int) ($booking['vehicle_id'] ?? 0),
+            ]);
+
+            $pdo->commit();
+            return ['ok' => true];
+        } catch (Throwable $e) {
+            if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            return ['ok' => false, 'error' => 'Could not cancel booking right now.'];
         }
     }
 }

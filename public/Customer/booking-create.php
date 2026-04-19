@@ -5,15 +5,10 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['customer']);
 
 $user = currentUser();
-$customerEmail = $user['email'] ?? '';
-$customer = getCustomerByEmail($customerEmail);
-
-if ($customer === null) {
-    header('Location: dashboard.php');
-    exit;
-}
+$customer = resolveCustomerForUser($user);
 
 $customerId = (int) ($customer['customer_id'] ?? 0);
+$accountLinked = $customerId > 0;
 $vehicles = getAvailableVehicles(200);
 
 $errors = [];
@@ -31,20 +26,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form['return_date'] = trim((string) ($_POST['return_date'] ?? ''));
     $form['notes'] = trim((string) ($_POST['notes'] ?? ''));
 
-    $result = createRentalBooking(
-        $customerId,
-        (int) $form['vehicle_id'],
-        $form['pickup_date'],
-        $form['return_date'],
-        $form['notes']
-    );
+    if (!$accountLinked) {
+        $errors[] = 'Your account is not yet linked to a customer profile. Please contact support to continue.';
+    }
+
+    $result = ['ok' => false, 'error' => 'Could not create booking.'];
+    if ($errors === []) {
+        $result = createRentalBooking(
+            $customerId,
+            (int) $form['vehicle_id'],
+            $form['pickup_date'],
+            $form['return_date'],
+            $form['notes']
+        );
+    }
 
     if (($result['ok'] ?? false) === true) {
         header('Location: bookings.php?notice=booking_created');
         exit;
     }
 
-    $errors[] = (string) ($result['error'] ?? 'Could not create booking.');
+    if ($errors === []) {
+        $errors[] = (string) ($result['error'] ?? 'Could not create booking.');
+    }
 }
 
 viewBegin('app', appLayoutData('New booking', 'bookings', ['role' => 'customer']));
@@ -67,9 +71,13 @@ viewBegin('app', appLayoutData('New booking', 'bookings', ['role' => 'customer']
         </div>
     <?php endif; ?>
 
+    <?php if (!$accountLinked): ?>
+        <div class="alert-info">You can browse available vehicles below, but booking submission is disabled until your profile is linked.</div>
+    <?php endif; ?>
+
     <form method="post" class="customer-form-grid">
         <label>Vehicle
-            <select name="vehicle_id" required>
+            <select name="vehicle_id" required <?= $accountLinked ? '' : 'disabled' ?>>
                 <option value="">Select vehicle</option>
                 <?php foreach ($vehicles as $vehicle): ?>
                     <?php $id = (int) ($vehicle['vehicle_id'] ?? 0); ?>
@@ -81,20 +89,20 @@ viewBegin('app', appLayoutData('New booking', 'bookings', ['role' => 'customer']
         </label>
 
         <label>Pickup date
-            <input type="date" name="pickup_date" value="<?= htmlspecialchars($form['pickup_date']) ?>" required min="<?= date('Y-m-d') ?>">
+            <input type="date" name="pickup_date" value="<?= htmlspecialchars($form['pickup_date']) ?>" required min="<?= date('Y-m-d') ?>" <?= $accountLinked ? '' : 'disabled' ?>>
         </label>
 
         <label>Return date
-            <input type="date" name="return_date" value="<?= htmlspecialchars($form['return_date']) ?>" required min="<?= date('Y-m-d', strtotime('+1 day')) ?>">
+            <input type="date" name="return_date" value="<?= htmlspecialchars($form['return_date']) ?>" required min="<?= date('Y-m-d', strtotime('+1 day')) ?>" <?= $accountLinked ? '' : 'disabled' ?>>
         </label>
 
         <label class="full">Notes (optional)
-            <textarea name="notes" rows="3" placeholder="Any special requests or notes..."><?= htmlspecialchars($form['notes']) ?></textarea>
+            <textarea name="notes" rows="3" placeholder="Any special requests or notes..." <?= $accountLinked ? '' : 'disabled' ?>><?= htmlspecialchars($form['notes']) ?></textarea>
         </label>
 
         <div class="customer-form-actions full">
             <a class="ghost-link button-like" href="bookings.php">Cancel</a>
-            <button type="submit" class="primary-btn">Book vehicle</button>
+            <button type="submit" class="primary-btn" <?= $accountLinked ? '' : 'disabled' ?>>Book vehicle</button>
         </div>
     </form>
 </section>

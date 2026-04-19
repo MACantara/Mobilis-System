@@ -5,12 +5,14 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['customer']);
 
 $user = currentUser();
-$customerEmail = $user['email'] ?? '';
+$customer = resolveCustomerForUser($user);
+$customerId = (int) ($customer['customer_id'] ?? 0);
+$accountLinked = $customerId > 0;
 
 // Get customer-specific data
-$customerBookings = getCustomerBookings($customerEmail, 10);
+$customerBookings = $accountLinked ? getCustomerBookingsByCustomerId($customerId, 10) : [];
 $availableVehicles = getAvailableVehicles(6);
-$customerPayments = getCustomerPayments($customerEmail, 5);
+$customerPayments = $accountLinked ? getCustomerPaymentsByCustomerId($customerId, 5) : [];
 
 if (!function_exists('vehicleEmoji')) {
     function vehicleEmoji(array $vehicle): string
@@ -82,8 +84,14 @@ if (!function_exists('bookingStatusKey')) {
 viewBegin('app', appLayoutData('Dashboard', 'dashboard', ['role' => 'customer']));
 ?>
 <section class="page-content-head">
-    <h3>Welcome, <?= htmlspecialchars($user['name'] ?? 'Customer') ?></h3>
+    <h3>Welcome, <?= htmlspecialchars((string) ($user['name'] ?? 'Customer')) ?></h3>
 </section>
+
+<?php if (!$accountLinked): ?>
+    <section class="card">
+        <div class="alert-info">Your account is authenticated but not yet linked to a customer profile record. Booking and payment history will appear once linked by the admin team.</div>
+    </section>
+<?php endif; ?>
 
 <section class="content-grid metric-grid">
     <article class="card metric-card">
@@ -93,7 +101,7 @@ viewBegin('app', appLayoutData('Dashboard', 'dashboard', ['role' => 'customer'])
     </article>
     <article class="card metric-card">
         <p>Total spent</p>
-        <h4>P<?= number_format(array_sum(array_column($customerPayments, 'total_amount' ?? 0)), 2) ?></h4>
+        <h4>P<?= number_format(array_sum(array_map(static fn(array $payment): float => (float) ($payment['total_amount'] ?? 0), $customerPayments)), 2) ?></h4>
         <span>lifetime payments</span>
     </article>
     <article class="card metric-card">

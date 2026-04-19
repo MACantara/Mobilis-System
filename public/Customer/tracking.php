@@ -5,12 +5,18 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['customer']);
 
 $user = currentUser();
-$customerEmail = $user['email'] ?? '';
+$customer = resolveCustomerForUser($user);
+$customerId = (int) ($customer['customer_id'] ?? 0);
+$accountLinked = $customerId > 0;
 
-$customerBookings = getCustomerBookings($customerEmail, 50);
+$customerBookings = $accountLinked ? getCustomerBookingsByCustomerId($customerId, 50) : [];
 $activeBookings = array_filter($customerBookings, fn($b) => in_array(($b['status'] ?? ''), ['active', 'confirmed']));
 $snapshot = getLiveTrackingSnapshot($user ?? [], 200, 5);
-$trackedVehicles = (array) ($snapshot['vehicles'] ?? []);
+$activeVehicleIds = array_values(array_unique(array_map(static fn(array $booking): int => (int) ($booking['vehicle_id'] ?? 0), $activeBookings)));
+$trackedVehicles = array_values(array_filter(
+    (array) ($snapshot['vehicles'] ?? []),
+    static fn(array $vehicle): bool => in_array((int) ($vehicle['vehicle_id'] ?? 0), $activeVehicleIds, true)
+));
 
 if (!function_exists('vehicleEmoji')) {
     function vehicleEmoji(string $vehicleName): string
@@ -35,6 +41,12 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
     <h3>My vehicle tracking</h3>
 </section>
 
+<?php if (!$accountLinked): ?>
+    <section class="card">
+        <div class="alert-info">Your account is not yet linked to a customer profile. Live tracking will be available after account linking.</div>
+    </section>
+<?php endif; ?>
+
 <?php if ($activeBookings === []): ?>
     <section class="card">
         <p class="muted">You have no active rentals to track. <a href="booking-create.php" class="text-link">Book a vehicle</a></p>
@@ -51,7 +63,8 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
                 data-tracking-map
                 data-tracking-endpoint="/api/tracking.php"
                 data-tracking-list-target="customer-tracked-vehicles"
-                data-tracking-status-target="customer-tracking-status"></div>
+                data-tracking-status-target="customer-tracking-status"
+                data-tracking-vehicle-ids="<?= htmlspecialchars(implode(',', $activeVehicleIds)) ?>"></div>
             <p id="customer-tracking-status" class="muted tracking-status-note">
                 Simulated locations refresh every <?= (int) ($snapshot['step_seconds'] ?? 5) ?> seconds.
             </p>

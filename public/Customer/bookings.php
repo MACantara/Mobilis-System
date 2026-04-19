@@ -5,7 +5,17 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['customer']);
 
 $user = currentUser();
-$customerEmail = $user['email'] ?? '';
+$customer = resolveCustomerForUser($user);
+$customerId = (int) ($customer['customer_id'] ?? 0);
+$accountLinked = $customerId > 0;
+
+$notice = (string) ($_GET['notice'] ?? '');
+$noticeMessage = '';
+if ($notice === 'booking_created') {
+    $noticeMessage = 'Your booking has been created successfully.';
+} elseif ($notice === 'booking_cancelled') {
+    $noticeMessage = 'Your booking was cancelled successfully.';
+}
 
 if (!function_exists('bookingStatusKey')) {
     function bookingStatusKey(array $booking): string
@@ -75,7 +85,7 @@ $activeStatus = strtolower((string) ($_GET['status'] ?? 'all'));
 $currentPage = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 6;
 
-$allBookings = getCustomerBookings($customerEmail, 500);
+$allBookings = $accountLinked ? getCustomerBookingsByCustomerId($customerId, 500) : [];
 $baseFiltered = [];
 
 foreach ($allBookings as $booking) {
@@ -184,6 +194,18 @@ viewBegin('app', appLayoutData('My Bookings', 'bookings', ['role' => 'customer']
         <?php endforeach; ?>
     </nav>
 </section>
+
+<?php if ($noticeMessage !== ''): ?>
+    <section class="card">
+        <div class="alert-success"><?= htmlspecialchars($noticeMessage) ?></div>
+    </section>
+<?php endif; ?>
+
+<?php if (!$accountLinked): ?>
+    <section class="card">
+        <div class="alert-info">Your account is not yet linked to a customer profile. Please contact support to enable booking history.</div>
+    </section>
+<?php endif; ?>
 
 <section class="card bookings-table-card">
     <div class="bookings-table-wrap table-wrap">

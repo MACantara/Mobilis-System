@@ -5,15 +5,60 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['customer']);
 
 $user = currentUser();
-$customerEmail = $user['email'] ?? '';
+$customer = resolveCustomerForUser($user);
+$customerId = (int) ($customer['customer_id'] ?? 0);
+$accountLinked = $customerId > 0;
 
-$payments = getCustomerPayments($customerEmail, 50);
+$errors = [];
+$notice = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = strtolower(trim((string) ($_POST['action'] ?? '')));
+    $invoiceId = (int) ($_POST['invoice_id'] ?? 0);
+
+    if ($action === 'pay') {
+        if (!$accountLinked) {
+            $errors[] = 'Your account is not linked to a customer profile yet.';
+        } else {
+            $result = markCustomerInvoicePaid($customerId, $invoiceId);
+            if (($result['ok'] ?? false) === true) {
+                $notice = (string) ($result['notice'] ?? 'Payment recorded successfully.');
+            } else {
+                $errors[] = (string) ($result['error'] ?? 'Payment could not be processed.');
+            }
+        }
+    }
+}
+
+$payments = $accountLinked ? getCustomerPaymentsByCustomerId($customerId, 50) : [];
 
 viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
 ?>
 <section class="page-content-head">
     <h3>My payments</h3>
 </section>
+
+<?php if ($notice !== ''): ?>
+    <section class="card">
+        <div class="alert-success"><?= htmlspecialchars($notice) ?></div>
+    </section>
+<?php endif; ?>
+
+<?php if ($errors !== []): ?>
+    <section class="card">
+        <div class="alert-error">
+            <?php foreach ($errors as $error): ?>
+                <p><?= htmlspecialchars($error) ?></p>
+            <?php endforeach; ?>
+        </div>
+    </section>
+<?php endif; ?>
+
+<?php if (!$accountLinked): ?>
+    <section class="card">
+        <div class="alert-info">Your account is not yet linked to a customer profile. Payment history will appear once linked.</div>
+    </section>
+<?php endif; ?>
 
 <section class="card">
     <div class="card-header">
@@ -28,11 +73,12 @@ viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
                     <th>Issued</th>
                     <th>Total</th>
                     <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
             <?php if ($payments === []): ?>
-                <tr><td colspan="5" class="muted">No payments yet.</td></tr>
+                <tr><td colspan="6" class="muted">No payments yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($payments as $payment): ?>
                     <?php $status = strtolower(str_replace(' ', '-', (string) ($payment['payment_status'] ?? 'unpaid'))); ?>
@@ -42,6 +88,17 @@ viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
                         <td><?= htmlspecialchars((string) $payment['issued_at']) ?></td>
                         <td><strong>P<?= number_format((float) $payment['total_amount'], 2) ?></strong></td>
                         <td><span class="pill <?= htmlspecialchars($status) ?>"><?= htmlspecialchars(ucfirst((string) $payment['payment_status'])) ?></span></td>
+                        <td>
+                            <?php if (in_array($status, ['unpaid', 'partial'], true)): ?>
+                                <form method="post" class="booking-actions" style="justify-content:flex-start;">
+                                    <input type="hidden" name="action" value="pay">
+                                    <input type="hidden" name="invoice_id" value="<?= (int) ($payment['invoice_id'] ?? 0) ?>">
+                                    <button type="submit" class="primary-btn booking-mini-btn">Pay now</button>
+                                </form>
+                            <?php else: ?>
+                                <span class="muted">Settled</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>

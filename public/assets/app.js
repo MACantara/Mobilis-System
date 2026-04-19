@@ -363,6 +363,13 @@ async function setupLiveTrackingMap(mapEl) {
   const endpoint = mapEl.dataset.trackingEndpoint || '/api/tracking.php';
   const listTargetId = mapEl.dataset.trackingListTarget || '';
   const statusTargetId = mapEl.dataset.trackingStatusTarget || '';
+  const vehicleIdsRaw = mapEl.dataset.trackingVehicleIds || '';
+  const allowedVehicleIds = new Set(
+    vehicleIdsRaw
+      .split(',')
+      .map((value) => Number(value.trim()))
+      .filter((value) => Number.isFinite(value) && value > 0)
+  );
   const listEl = listTargetId ? document.getElementById(listTargetId) : null;
   const statusEl = statusTargetId ? document.getElementById(statusTargetId) : null;
 
@@ -392,7 +399,10 @@ async function setupLiveTrackingMap(mapEl) {
       }
 
       const payload = await response.json();
-      const vehicles = Array.isArray(payload.vehicles) ? payload.vehicles : [];
+      const allVehicles = Array.isArray(payload.vehicles) ? payload.vehicles : [];
+      const vehicles = allowedVehicleIds.size > 0
+        ? allVehicles.filter((vehicle) => allowedVehicleIds.has(Number(vehicle.vehicle_id || 0)))
+        : allVehicles;
       const stepSeconds = Number(payload.step_seconds || 5);
 
       if (Number.isFinite(stepSeconds) && stepSeconds > 0) {

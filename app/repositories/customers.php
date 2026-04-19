@@ -301,3 +301,74 @@ if (!function_exists('getCustomerByEmail')) {
         }
     }
 }
+
+if (!function_exists('getCustomerByName')) {
+    function getCustomerByName(string $name): ?array
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return null;
+        }
+
+        if (!dbConnected()) {
+            foreach (getCustomers(200) as $customer) {
+                $candidate = strtolower(trim((string) ($customer['name'] ?? '')));
+                if ($candidate === strtolower($name)) {
+                    return $customer;
+                }
+            }
+            return null;
+        }
+
+        try {
+            $sql = "
+                SELECT
+                    c.customer_id,
+                    c.first_name,
+                    c.last_name,
+                    CONCAT(c.first_name, ' ', c.last_name) AS name,
+                    c.email,
+                    c.phone,
+                    c.license_number,
+                    c.license_expiry,
+                    c.address
+                FROM Customer c
+                WHERE LOWER(CONCAT(c.first_name, ' ', c.last_name)) = LOWER(:name)
+                LIMIT 1
+            ";
+            $stmt = db()->prepare($sql);
+            $stmt->execute(['name' => $name]);
+            $row = $stmt->fetch();
+            return $row ?: null;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+}
+
+if (!function_exists('resolveCustomerForUser')) {
+    function resolveCustomerForUser(?array $user): ?array
+    {
+        if (!is_array($user)) {
+            return null;
+        }
+
+        $email = strtolower(trim((string) ($user['email'] ?? '')));
+        if ($email !== '') {
+            $byEmail = getCustomerByEmail($email);
+            if ($byEmail !== null) {
+                return $byEmail;
+            }
+        }
+
+        $name = trim((string) ($user['name'] ?? ''));
+        if ($name !== '') {
+            $byName = getCustomerByName($name);
+            if ($byName !== null) {
+                return $byName;
+            }
+        }
+
+        return null;
+    }
+}

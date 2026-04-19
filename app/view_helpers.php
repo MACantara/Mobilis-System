@@ -15,6 +15,7 @@ if (!function_exists('navSections')) {
             [
                 'section' => 'Fleet',
                 'items' => [
+                    ['key' => 'vehicles', 'label' => 'Browse vehicles', 'href' => '/Customer/vehicles.php', 'icon' => '🚘'],
                     ['key' => 'tracking', 'label' => 'Live tracking', 'href' => '/Customer/tracking.php', 'icon' => '📍'],
                 ],
             ],
