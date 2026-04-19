@@ -38,20 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password | Mobilis</title>
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/styles.css">
-</head>
-<body class="public-auth-body">
-<main class="auth-split-shell">
+<?php
+renderAuthPageTop('Forgot Password');
+?>
     <section class="auth-brand-panel">
         <a href="/index.php" class="brand hero-brand">
             <img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
@@ -67,42 +56,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <section class="auth-form-panel">
-        <div class="form-wrap">
-            <h3>Password assistance</h3>
-            <p>Provide your account details and reason for the request.</p>
+    <?php renderAuthFormPanelStart(); ?>
+        <h3>Password assistance</h3>
+        <p>Provide your account details and reason for the request.</p>
 
-            <?php if ($success !== ''): ?>
-                <div class="alert-success"><?= htmlspecialchars($success) ?></div>
-            <?php endif; ?>
+        <?php if ($success !== ''): ?>
+            <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
 
-            <?php if ($errors !== []): ?>
-                <div class="alert-error">
-                    <?php foreach ($errors as $error): ?>
-                        <p><?= htmlspecialchars($error) ?></p>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="post" class="auth-form-grid">
-                <label for="forgot-email">Email address
-                    <input id="forgot-email" type="email" name="email" placeholder="you@mobilis.ph" required>
-                </label>
-                <label for="forgot-license">License number (optional)
-                    <input id="forgot-license" type="text" name="license_number" placeholder="N01-23-456789">
-                </label>
-                <label for="forgot-reason" class="full">Reason
-                    <textarea id="forgot-reason" name="reason" rows="4" maxlength="500" placeholder="Lost access to account credentials" required></textarea>
-                </label>
-                <button type="submit" class="primary-btn full">Submit request</button>
-            </form>
-
-            <div class="auth-form-footer-links">
-                <a href="/login.php">Back to sign in</a>
-                <a href="/contact-admin.php">Contact admin</a>
+        <?php if ($errors !== []): ?>
+            <div class="alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= htmlspecialchars($error) ?></p>
+                <?php endforeach; ?>
             </div>
+        <?php endif; ?>
+
+        <form method="post" class="auth-form-grid">
+            <label for="forgot-email">Email address
+                <input id="forgot-email" type="email" name="email" placeholder="you@mobilis.ph" required>
+            </label>
+            <label for="forgot-license">License number (optional)
+                <input id="forgot-license" type="text" name="license_number" placeholder="N01-23-456789">
+            </label>
+            <label for="forgot-reason" class="full">Reason
+                <textarea id="forgot-reason" name="reason" rows="4" maxlength="500" placeholder="Lost access to account credentials" required></textarea>
+            </label>
+            <button type="submit" class="primary-btn full">Submit request</button>
+        </form>
+
+        <div class="auth-form-footer-links">
+            <a href="/login.php">Back to sign in</a>
+            <a href="/contact-admin.php">Contact admin</a>
         </div>
-    </section>
-</main>
-</body>
-</html>
+    <?php renderAuthFormPanelEnd(); ?>
+<?php renderAuthPageBottom(); ?>

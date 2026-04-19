@@ -47,20 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account | Mobilis</title>
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/styles.css">
-</head>
-<body class="public-auth-body">
-<main class="auth-split-shell">
+<?php
+renderAuthPageTop('Create Account');
+?>
     <section class="auth-brand-panel">
         <a href="/index.php" class="brand hero-brand">
             <img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
@@ -76,45 +65,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <section class="auth-form-panel">
-        <div class="form-wrap">
-            <h3>Create your Mobilis account</h3>
-            <p>Submit your details below and wait for admin approval.</p>
+    <?php renderAuthFormPanelStart(); ?>
+        <h3>Create your Mobilis account</h3>
+        <p>Submit your details below and wait for admin approval.</p>
 
-            <?php if ($success !== ''): ?>
-                <div class="alert-success"><?= htmlspecialchars($success) ?></div>
-            <?php endif; ?>
+        <?php if ($success !== ''): ?>
+            <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
 
-            <?php if ($errors !== []): ?>
-                <div class="alert-error">
-                    <?php foreach ($errors as $error): ?>
-                        <p><?= htmlspecialchars($error) ?></p>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+        <?php if ($errors !== []): ?>
+            <div class="alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= htmlspecialchars($error) ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-            <form method="post" class="auth-form-grid">
-                <label for="register-full-name">Full name
-                    <input id="register-full-name" type="text" name="full_name" placeholder="Maria Reyes" required>
-                </label>
-                <label for="register-email">Email address
-                    <input id="register-email" type="email" name="email" placeholder="maria@email.com" required>
-                </label>
-                <label for="register-phone">Phone number
-                    <input id="register-phone" type="tel" name="phone" placeholder="+63 917 123 4567" required>
-                </label>
-                <label for="register-license">Driver's license number
-                    <input id="register-license" type="text" name="license_number" placeholder="N01-23-456789" required>
-                </label>
-                <label for="register-address" class="full">Address (optional)
-                    <textarea id="register-address" name="address" rows="3" placeholder="Makati City, Metro Manila"></textarea>
-                </label>
-                <button type="submit" class="primary-btn full">Submit registration</button>
-            </form>
+        <form method="post" class="auth-form-grid">
+            <label for="register-full-name">Full name
+                <input id="register-full-name" type="text" name="full_name" placeholder="Maria Reyes" required>
+            </label>
+            <label for="register-email">Email address
+                <input id="register-email" type="email" name="email" placeholder="maria@email.com" required>
+            </label>
+            <label for="register-phone">Phone number
+                <input id="register-phone" type="tel" name="phone" placeholder="+63 917 123 4567" required>
+            </label>
+            <label for="register-license">Driver's license number
+                <input id="register-license" type="text" name="license_number" placeholder="N01-23-456789" required>
+            </label>
+            <label for="register-address" class="full">Address (optional)
+                <textarea id="register-address" name="address" rows="3" placeholder="Makati City, Metro Manila"></textarea>
+            </label>
+            <button type="submit" class="primary-btn full">Submit registration</button>
+        </form>
 
-            <p class="auth-footnote">Already approved? <a href="/login.php" class="text-link">Sign in</a></p>
-        </div>
-    </section>
-</main>
-</body>
-</html>
+        <p class="auth-footnote">Already approved? <a href="/login.php" class="text-link">Sign in</a></p>
+    <?php renderAuthFormPanelEnd(); ?>
+<?php renderAuthPageBottom(); ?>

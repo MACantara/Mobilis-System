@@ -158,3 +158,140 @@ if (!function_exists('renderPageBottom')) {
         echo '</body></html>';
     }
 }
+
+if (!function_exists('renderAuthPageTop')) {
+    function renderAuthPageTop(string $title, string $bodyClass = 'public-auth-body'): void
+    {
+        echo '<!doctype html><html lang="en"><head>';
+        echo '<meta charset="UTF-8">';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        echo '<title>' . htmlspecialchars($title) . ' | Mobilis</title>';
+        echo '<link rel="icon" type="image/png" href="/assets/images/favicon.png">';
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+        echo '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
+        echo '<link rel="stylesheet" href="/assets/styles.css">';
+        echo '</head><body class="' . htmlspecialchars($bodyClass) . '">';
+        echo '<main class="auth-split-shell">';
+    }
+}
+
+if (!function_exists('renderAuthPageBottom')) {
+    function renderAuthPageBottom(): void
+    {
+        echo '</main>';
+        echo '</body></html>';
+    }
+}
+
+if (!function_exists('renderAuthBrandPanel')) {
+    function renderAuthBrandPanel(string $heading, string $description): void
+    {
+        echo '<section class="auth-brand-panel">';
+        echo '<a href="/index.php" class="brand hero-brand">';
+        echo '<img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
+        echo '</a>';
+        echo '<div class="hero-copy">';
+        echo '<h2>' . htmlspecialchars($heading) . '</h2>';
+        echo '<p>' . htmlspecialchars($description) . '</p>';
+        echo '</div>';
+        echo '</section>';
+    }
+}
+
+if (!function_exists('renderAuthFormPanelStart')) {
+    function renderAuthFormPanelStart(): void
+    {
+        echo '<section class="auth-form-panel">';
+        echo '<div class="form-wrap">';
+    }
+}
+
+if (!function_exists('renderAuthFormPanelEnd')) {
+    function renderAuthFormPanelEnd(): void
+    {
+        echo '</div>';
+        echo '</section>';
+    }
+}
+
+if (!function_exists('renderErrorPageTop')) {
+    function renderErrorPageTop(int $code, string $title): void
+    {
+        echo '<!doctype html><html lang="en"><head>';
+        echo '<meta charset="UTF-8">';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        echo '<title>' . htmlspecialchars($code) . ' | ' . htmlspecialchars($title) . ' | Mobilis</title>';
+        echo '<link rel="icon" type="image/png" href="/assets/images/favicon.png">';
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+        echo '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
+        echo '<link rel="stylesheet" href="/assets/styles.css">';
+        echo '</head><body class="login-body">';
+        echo '<main class="auth-split-shell">';
+    }
+}
+
+if (!function_exists('renderErrorPageBottom')) {
+    function renderErrorPageBottom(): void
+    {
+        echo '</main>';
+        echo '</body></html>';
+    }
+}
+
+if (!function_exists('renderErrorBrandPanel')) {
+    function renderErrorBrandPanel(string $heading, string $description): void
+    {
+        echo '<section class="auth-brand-panel">';
+        echo '<a href="/index.php" class="brand hero-brand">';
+        echo '<img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
+        echo '</a>';
+        echo '<div class="hero-copy">';
+        echo '<h2>' . htmlspecialchars($heading) . '</h2>';
+        echo '<p>' . htmlspecialchars($description) . '</p>';
+        echo '</div>';
+        echo '</section>';
+    }
+}
+
+if (!function_exists('renderErrorFormPanel')) {
+    function renderErrorFormPanel(int $code, string $title, string $message, string $backUrl = '/index.php'): void
+    {
+        echo '<section class="auth-form-panel">';
+        echo '<div class="form-wrap">';
+        echo '<h3>Error ' . htmlspecialchars($code) . '</h3>';
+        echo '<p>' . htmlspecialchars($message) . '</p>';
+        echo '<div style="margin-top: 24px;">';
+        echo '<a href="' . htmlspecialchars($backUrl) . '" class="primary-btn full">Go to dashboard</a>';
+        echo '<a href="/" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Go to home</a>';
+        echo '</div>';
+        echo '</div>';
+        echo '</section>';
+    }
+}
+
+if (!function_exists('renderLandingPageTop')) {
+    function renderLandingPageTop(string $title): void
+    {
+        echo '<!doctype html><html lang="en"><head>';
+        echo '<meta charset="UTF-8">';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        echo '<title>' . htmlspecialchars($title) . ' | Mobilis</title>';
+        echo '<link rel="icon" type="image/png" href="/assets/images/favicon.png">';
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+        echo '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
+        echo '<link rel="stylesheet" href="/assets/styles.css">';
+        echo '</head><body class="landing-body">';
+        echo '<main class="landing-shell">';
+    }
+}
+
+if (!function_exists('renderLandingPageBottom')) {
+    function renderLandingPageBottom(): void
+    {
+        echo '</main>';
+        echo '</body></html>';
+    }
+}

@@ -43,20 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Admin | Mobilis</title>
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/styles.css">
-</head>
-<body class="public-auth-body">
-<main class="auth-split-shell">
+<?php
+renderAuthPageTop('Contact Admin');
+?>
     <section class="auth-brand-panel">
         <a href="/index.php" class="brand hero-brand">
             <img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
@@ -90,48 +79,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </section>
 
-    <section class="auth-form-panel">
-        <div class="form-wrap">
-            <h3>Contact your admin</h3>
-            <p>Submit a support message and we will route it to the right team.</p>
+    <?php renderAuthFormPanelStart(); ?>
+        <h3>Contact your admin</h3>
+        <p>Submit a support message and we will route it to the right team.</p>
 
-            <?php if ($success !== ''): ?>
-                <div class="alert-success"><?= htmlspecialchars($success) ?></div>
-            <?php endif; ?>
+        <?php if ($success !== ''): ?>
+            <div class="alert-success"><?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
 
-            <?php if ($errors !== []): ?>
-                <div class="alert-error">
-                    <?php foreach ($errors as $error): ?>
-                        <p><?= htmlspecialchars($error) ?></p>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="post" class="auth-form-grid">
-                <label for="contact-full-name">Full name
-                    <input id="contact-full-name" type="text" name="full_name" placeholder="Maria Reyes" required>
-                </label>
-                <label for="contact-email">Email address
-                    <input id="contact-email" type="email" name="email" placeholder="maria@email.com" required>
-                </label>
-                <label for="contact-phone">Phone (optional)
-                    <input id="contact-phone" type="tel" name="phone" placeholder="+63 917 123 4567">
-                </label>
-                <label for="contact-subject">Subject
-                    <input id="contact-subject" type="text" name="subject" placeholder="Account access support" required>
-                </label>
-                <label for="contact-message" class="full">Message
-                    <textarea id="contact-message" name="message" rows="4" maxlength="1000" placeholder="Please help reset my account access" required></textarea>
-                </label>
-                <button type="submit" class="primary-btn full">Send to admin</button>
-            </form>
-
-            <div class="auth-form-footer-links">
-                <a href="/login.php">Back to sign in</a>
-                <a href="/forgot-password.php">Forgot password</a>
+        <?php if ($errors !== []): ?>
+            <div class="alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= htmlspecialchars($error) ?></p>
+                <?php endforeach; ?>
             </div>
+        <?php endif; ?>
+
+        <form method="post" class="auth-form-grid">
+            <label for="contact-full-name">Full name
+                <input id="contact-full-name" type="text" name="full_name" placeholder="Maria Reyes" required>
+            </label>
+            <label for="contact-email">Email address
+                <input id="contact-email" type="email" name="email" placeholder="maria@email.com" required>
+            </label>
+            <label for="contact-phone">Phone (optional)
+                <input id="contact-phone" type="tel" name="phone" placeholder="+63 917 123 4567">
+            </label>
+            <label for="contact-subject">Subject
+                <input id="contact-subject" type="text" name="subject" placeholder="Account access support" required>
+            </label>
+            <label for="contact-message" class="full">Message
+                <textarea id="contact-message" name="message" rows="4" maxlength="1000" placeholder="Please help reset my account access" required></textarea>
+            </label>
+            <button type="submit" class="primary-btn full">Send to admin</button>
+        </form>
+
+        <div class="auth-form-footer-links">
+            <a href="/login.php">Back to sign in</a>
+            <a href="/forgot-password.php">Forgot password</a>
         </div>
-    </section>
-</main>
-</body>
-</html>
+    <?php renderAuthFormPanelEnd(); ?>
+<?php renderAuthPageBottom(); ?>
