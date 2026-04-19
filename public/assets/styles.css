@@ -2214,17 +2214,7 @@ td p {
 
 .landing-bento-card.wide {
   grid-column: span 8;
-  grid-template-columns: 48px 1fr;
-  align-items: start;
   background: linear-gradient(150deg, #eff6f3, #e7f0ec);
-}
-
-.landing-bento-card.wide .landing-proof-content strong {
-  font-size: 1.48rem;
-}
-
-.landing-bento-card.wide .landing-proof-content span {
-  font-size: 1rem;
 }
 
 .landing-bento-card.accent {
@@ -2321,9 +2311,12 @@ td p {
 .landing-cta::before {
   content: "";
   position: absolute;
-  inset: -40% 16% auto;
-  height: 220px;
-  background: radial-gradient(circle at center, rgba(30, 177, 126, 0.35), transparent 66%);
+  top: -110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, 94%);
+  height: 280px;
+  background: radial-gradient(circle at center, rgba(30, 177, 126, 0.32), transparent 68%);
   pointer-events: none;
 }
 

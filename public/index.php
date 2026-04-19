@@ -94,11 +94,9 @@ if (isAuthenticated()) {
 
         <div class="landing-bento-grid">
             <article class="landing-bento-card wide">
-                <span class="landing-proof-icon">🚙</span>
-                <div class="landing-proof-content">
-                    <strong>Instant booking visibility</strong>
-                    <span>Track confirmation, payment, and schedule updates with clear status indicators from reservation to return.</span>
-                </div>
+                <span class="landing-feature-icon">🚙</span>
+                <h4>Instant booking visibility</h4>
+                <p>Track confirmation, payment, and schedule updates with clear status indicators from reservation to return.</p>
             </article>
 
             <article class="landing-bento-card accent">
@@ -114,11 +112,9 @@ if (isAuthenticated()) {
             </article>
 
             <article class="landing-bento-card split">
-                <div>
-                    <span class="landing-feature-icon">🕒</span>
-                    <h4>24/7 support routing</h4>
-                    <p>Our support workflows keep customers informed with timely updates and clear turnaround expectations.</p>
-                </div>
+                <span class="landing-feature-icon">🕒</span>
+                <h4>24/7 support routing</h4>
+                <p>Our support workflows keep customers informed with timely updates and clear turnaround expectations.</p>
             </article>
         </div>
     </section>
