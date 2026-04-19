@@ -84,7 +84,7 @@ if (!function_exists('getUpcomingBookings')) {
         try {
             $sql = "
                 SELECT
-                    CONCAT(c.first_name, ' ', c.last_name) AS customer_name,
+                    CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
                     CONCAT(v.brand, ' ', v.model) AS vehicle_name,
                     r.pickup_date,
                     r.return_date,
@@ -97,7 +97,8 @@ if (!function_exists('getUpcomingBookings')) {
                 FROM Rental r
                 INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
-                WHERE r.pickup_date >= :today
+                                WHERE r.pickup_date >= :today
+                                    AND r.status IN ('pending', 'active')
                 ORDER BY r.pickup_date ASC
                 LIMIT :limit
             ";
