@@ -17,6 +17,7 @@ $trackedVehicles = array_values(array_filter(
     (array) ($snapshot['vehicles'] ?? []),
     static fn(array $vehicle): bool => in_array((int) ($vehicle['vehicle_id'] ?? 0), $activeVehicleIds, true)
 ));
+$trackedVehiclesPreview = array_slice($trackedVehicles, 0, 10);
 
 if (!function_exists('vehicleEmoji')) {
     function vehicleEmoji(string $vehicleName): string
@@ -63,6 +64,7 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
                 data-tracking-map
                 data-tracking-endpoint="/api/tracking.php"
                 data-tracking-list-target="customer-tracked-vehicles"
+                data-tracking-list-limit="10"
                 data-tracking-status-target="customer-tracking-status"
                 data-tracking-vehicle-ids="<?= htmlspecialchars(implode(',', $activeVehicleIds)) ?>"></div>
             <p id="customer-tracking-status" class="muted tracking-status-note">
@@ -76,9 +78,10 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
         <article class="card">
             <div class="card-header">
                 <h4>My rented vehicles</h4>
+                <span class="muted">Showing first 10 (scroll for more)</span>
             </div>
-            <ul id="customer-tracked-vehicles" class="list clean">
-                <?php foreach ($trackedVehicles as $vehicle): ?>
+            <ul id="customer-tracked-vehicles" class="list clean tracking-list-scroll">
+                <?php foreach ($trackedVehiclesPreview as $vehicle): ?>
                     <?php $status = strtolower((string) ($vehicle['status'] ?? 'confirmed')); ?>
                     <li>
                         <div class="status-item-left">
