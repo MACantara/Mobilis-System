@@ -34,6 +34,7 @@ viewBegin('app', appLayoutData('Booking details', 'bookings', [
             <div><dt>Return date</dt><dd><?= htmlspecialchars((string) ($booking['return_date'] ?? 'N/A')) ?></dd></div>
             <div><dt>Status</dt><dd><?= htmlspecialchars(ucfirst((string) ($booking['status'] ?? 'pending'))) ?></dd></div>
             <div><dt>Payment</dt><dd><?= htmlspecialchars(ucfirst((string) ($booking['payment_status'] ?? 'unpaid'))) ?></dd></div>
+            <div><dt>Method</dt><dd><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($booking['payment_method'] ?? 'pending')))) ?></dd></div>
             <div><dt>Total</dt><dd>P<?= number_format((float) ($booking['total'] ?? 0), 2) ?></dd></div>
         </dl>
 
