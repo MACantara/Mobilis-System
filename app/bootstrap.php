@@ -76,5 +76,6 @@ if (!function_exists('appConfig')) {
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/repository.php';
+require_once __DIR__ . '/layout.php';
 require_once __DIR__ . '/view.php';
 require_once __DIR__ . '/view_helpers.php';

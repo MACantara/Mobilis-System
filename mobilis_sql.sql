@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS Vehicle (
   year         YEAR          NOT NULL,
   color        VARCHAR(30)   NOT NULL,
   mileage_km   INT UNSIGNED  NOT NULL DEFAULT 0,
+  latitude     DECIMAL(10,8) DEFAULT NULL,
+  longitude    DECIMAL(11,8) DEFAULT NULL,
   status       ENUM('available','rented','maintenance') NOT NULL DEFAULT 'available',
   PRIMARY KEY (vehicle_id),
   UNIQUE KEY uq_plate (plate_number),
@@ -70,57 +72,57 @@ CREATE TABLE IF NOT EXISTS Vehicle (
     ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO Vehicle (category_id, plate_number, brand, model, year, color, mileage_km, status)
-SELECT seed.category_id, seed.plate_number, seed.brand, seed.model, seed.year, seed.color, seed.mileage_km, seed.status
+INSERT INTO Vehicle (category_id, plate_number, brand, model, year, color, mileage_km, latitude, longitude, status)
+SELECT seed.category_id, seed.plate_number, seed.brand, seed.model, seed.year, seed.color, seed.mileage_km, seed.latitude, seed.longitude, seed.status
 FROM (
-  SELECT 2 AS category_id, 'ABC-1234' AS plate_number, 'Toyota' AS brand, 'Fortuner' AS model, 2022 AS year, 'Blue' AS color, 38200 AS mileage_km, 'rented' AS status
-  UNION ALL SELECT 1, 'XYZ-5678', 'Honda', 'Civic', 2023, 'Gray', 12500, 'available'
-  UNION ALL SELECT 3, 'DEF-9012', 'Toyota', 'HiAce', 2021, 'White', 49800, 'maintenance'
-  UNION ALL SELECT 2, 'GHI-3456', 'Mitsubishi', 'Xpander', 2023, 'Silver', 21000, 'rented'
-  UNION ALL SELECT 5, 'JKL-7890', 'Ford', 'Ranger', 2022, 'Black', 30100, 'available'
-  UNION ALL SELECT 2, 'MNO-2345', 'Hyundai', 'Tucson', 2024, 'White', 8400, 'rented'
-  UNION ALL SELECT 1, 'QRS-1007', 'Toyota', 'Vios', 2022, 'White', 44500, 'rented'
-  UNION ALL SELECT 1, 'TUV-1008', 'Honda', 'City', 2023, 'Silver', 16000, 'rented'
-  UNION ALL SELECT 1, 'WXY-1009', 'Nissan', 'Almera', 2021, 'Red', 55200, 'rented'
-  UNION ALL SELECT 1, 'ZAB-1010', 'Mazda', '3', 2022, 'Machine Gray', 22000, 'rented'
-  UNION ALL SELECT 2, 'CDE-1011', 'Ford', 'Everest', 2021, 'Black', 77800, 'rented'
-  UNION ALL SELECT 2, 'FGH-1012', 'Isuzu', 'mu-X', 2020, 'Brown', 88000, 'rented'
-  UNION ALL SELECT 2, 'IJK-1013', 'Mitsubishi', 'Montero', 2020, 'Gray', 95400, 'rented'
-  UNION ALL SELECT 3, 'LMN-1014', 'Toyota', 'Innova', 2022, 'White', 36000, 'rented'
-  UNION ALL SELECT 3, 'OPQ-1015', 'Nissan', 'Urvan', 2019, 'Pearl White', 116000, 'rented'
-  UNION ALL SELECT 3, 'RST-1016', 'Kia', 'Carnival', 2023, 'Blue', 28000, 'rented'
-  UNION ALL SELECT 5, 'UVW-1017', 'Ford', 'F-150', 2022, 'Red', 42000, 'rented'
-  UNION ALL SELECT 5, 'XYA-1018', 'Toyota', 'Hilux', 2021, 'Black', 61000, 'rented'
-  UNION ALL SELECT 5, 'BCD-1019', 'Mitsubishi', 'Strada', 2022, 'Blue', 54800, 'rented'
-  UNION ALL SELECT 3, 'EFG-1020', 'Suzuki', 'Ertiga', 2023, 'Gray', 14000, 'rented'
-  UNION ALL SELECT 2, 'HIJ-1021', 'Geely', 'Coolray', 2023, 'White', 17000, 'rented'
-  UNION ALL SELECT 2, 'KLM-1022', 'Honda', 'BR-V', 2022, 'Silver', 25000, 'rented'
-  UNION ALL SELECT 2, 'NOP-1023', 'Chery', 'Tiggo', 2024, 'Black', 9000, 'rented'
-  UNION ALL SELECT 2, 'QRT-1024', 'Toyota', 'Raize', 2024, 'Yellow', 7800, 'rented'
-  UNION ALL SELECT 3, 'STU-1025', 'Hyundai', 'Staria', 2024, 'White', 11000, 'rented'
-  UNION ALL SELECT 2, 'VWX-1026', 'Peugeot', '3008', 2021, 'Blue', 31200, 'rented'
-  UNION ALL SELECT 2, 'YZA-1027', 'Subaru', 'Forester', 2022, 'Green', 27600, 'rented'
-  UNION ALL SELECT 2, 'ABC-1028', 'Chevrolet', 'Trailblazer', 2020, 'Black', 68000, 'rented'
-  UNION ALL SELECT 5, 'DEF-1029', 'Nissan', 'Navara', 2021, 'Orange', 50000, 'rented'
-  UNION ALL SELECT 5, 'GHI-1030', 'Mazda', 'BT-50', 2022, 'Gray', 34500, 'rented'
-  UNION ALL SELECT 1, 'JKL-1031', 'Toyota', 'Corolla', 2023, 'White', 14300, 'rented'
-  UNION ALL SELECT 1, 'MNP-1032', 'Honda', 'Accord', 2020, 'Blue', 62800, 'rented'
-  UNION ALL SELECT 1, 'QWE-1033', 'Kia', 'Soluto', 2024, 'Red', 6200, 'rented'
-  UNION ALL SELECT 2, 'RTY-1034', 'MG', 'ZS', 2023, 'Gray', 12300, 'rented'
-  UNION ALL SELECT 3, 'UIO-1035', 'Toyota', 'Avanza', 2021, 'Silver', 43000, 'available'
-  UNION ALL SELECT 3, 'PAS-1036', 'Honda', 'Mobilio', 2020, 'Gray', 49000, 'available'
-  UNION ALL SELECT 1, 'DFG-1037', 'Suzuki', 'Dzire', 2022, 'Blue', 23000, 'available'
-  UNION ALL SELECT 2, 'HJK-1038', 'Nissan', 'Terra', 2021, 'Black', 57500, 'available'
-  UNION ALL SELECT 2, 'LZX-1039', 'Ford', 'Explorer', 2020, 'White', 70000, 'available'
-  UNION ALL SELECT 2, 'CVB-1040', 'Toyota', 'Rush', 2023, 'Maroon', 11000, 'available'
-  UNION ALL SELECT 5, 'NMK-1041', 'Isuzu', 'D-Max', 2022, 'Brown', 32000, 'available'
-  UNION ALL SELECT 3, 'POI-1042', 'Mitsubishi', 'L300', 2021, 'White', 51000, 'available'
-  UNION ALL SELECT 1, 'TRE-1043', 'Hyundai', 'Accent', 2024, 'Silver', 5500, 'available'
-  UNION ALL SELECT 2, 'WQA-1044', 'Kia', 'Sportage', 2022, 'Green', 26900, 'available'
-  UNION ALL SELECT 2, 'SED-1045', 'Toyota', 'Land Cruiser', 2019, 'White', 99000, 'maintenance'
-  UNION ALL SELECT 3, 'RFV-1046', 'Ford', 'Transit', 2020, 'Blue', 88000, 'maintenance'
-  UNION ALL SELECT 2, 'TGB-1047', 'Mazda', 'CX-9', 2021, 'Red', 54000, 'maintenance'
-  UNION ALL SELECT 2, 'YHN-1048', 'Nissan', 'Patrol', 2018, 'Black', 120000, 'maintenance'
+  SELECT 2 AS category_id, 'ABC-1234' AS plate_number, 'Toyota' AS brand, 'Fortuner' AS model, 2022 AS year, 'Blue' AS color, 38200 AS mileage_km, 14.6091 AS latitude, 121.0223 AS longitude, 'rented' AS status
+  UNION ALL SELECT 1, 'XYZ-5678', 'Honda', 'Civic', 2023, 'Gray', 12500, 14.5764, 121.0851, 'available'
+  UNION ALL SELECT 3, 'DEF-9012', 'Toyota', 'HiAce', 2021, 'White', 49800, 14.6349, 121.0330, 'maintenance'
+  UNION ALL SELECT 2, 'GHI-3456', 'Mitsubishi', 'Xpander', 2023, 'Silver', 21000, 14.5547, 121.0241, 'rented'
+  UNION ALL SELECT 5, 'JKL-7890', 'Ford', 'Ranger', 2022, 'Black', 30100, 14.5995, 121.0586, 'available'
+  UNION ALL SELECT 2, 'MNO-2345', 'Hyundai', 'Tucson', 2024, 'White', 8400, 14.6359, 121.0119, 'rented'
+  UNION ALL SELECT 1, 'QRS-1007', 'Toyota', 'Vios', 2022, 'White', 44500, 14.5794, 121.0358, 'rented'
+  UNION ALL SELECT 1, 'TUV-1008', 'Honda', 'City', 2023, 'Silver', 16000, 14.6042, 120.9842, 'rented'
+  UNION ALL SELECT 1, 'WXY-1009', 'Nissan', 'Almera', 2021, 'Red', 55200, 14.5869, 121.0637, 'rented'
+  UNION ALL SELECT 1, 'ZAB-1010', 'Mazda', '3', 2022, 'Machine Gray', 22000, 14.5532, 121.0465, 'rented'
+  UNION ALL SELECT 2, 'CDE-1011', 'Ford', 'Everest', 2021, 'Black', 77800, 14.6188, 121.0097, 'rented'
+  UNION ALL SELECT 2, 'FGH-1012', 'Isuzu', 'mu-X', 2020, 'Brown', 88000, 14.5485, 121.0682, 'rented'
+  UNION ALL SELECT 2, 'IJK-1013', 'Mitsubishi', 'Montero', 2020, 'Gray', 95400, 14.5679, 120.9924, 'rented'
+  UNION ALL SELECT 3, 'LMN-1014', 'Toyota', 'Innova', 2022, 'White', 36000, 14.5917, 121.0726, 'rented'
+  UNION ALL SELECT 3, 'OPQ-1015', 'Nissan', 'Urvan', 2019, 'Pearl White', 116000, 14.6214, 121.0438, 'rented'
+  UNION ALL SELECT 3, 'RST-1016', 'Kia', 'Carnival', 2023, 'Blue', 28000, 14.5418, 121.0158, 'rented'
+  UNION ALL SELECT 5, 'UVW-1017', 'Ford', 'F-150', 2022, 'Red', 42000, 14.5883, 121.0532, 'rented'
+  UNION ALL SELECT 5, 'XYA-1018', 'Toyota', 'Hilux', 2021, 'Black', 61000, 14.6087, 121.0289, 'rented'
+  UNION ALL SELECT 5, 'BCD-1019', 'Mitsubishi', 'Strada', 2022, 'Blue', 54800, 14.5724, 121.0065, 'rented'
+  UNION ALL SELECT 3, 'EFG-1020', 'Suzuki', 'Ertiga', 2023, 'Gray', 14000, 14.5956, 121.0409, 'rented'
+  UNION ALL SELECT 2, 'HIJ-1021', 'Geely', 'Coolray', 2023, 'White', 17000, 14.5635, 121.0779, 'rented'
+  UNION ALL SELECT 2, 'KLM-1022', 'Honda', 'BR-V', 2022, 'Silver', 25000, 14.6314, 121.0610, 'rented'
+  UNION ALL SELECT 2, 'NOP-1023', 'Chery', 'Tiggo', 2024, 'Black', 9000, 14.5821, 120.9976, 'rented'
+  UNION ALL SELECT 2, 'QRT-1024', 'Toyota', 'Raize', 2024, 'Yellow', 7800, 14.5586, 121.0302, 'rented'
+  UNION ALL SELECT 3, 'STU-1025', 'Hyundai', 'Staria', 2024, 'White', 11000, 14.6159, 121.0193, 'rented'
+  UNION ALL SELECT 2, 'VWX-1026', 'Peugeot', '3008', 2021, 'Blue', 31200, 14.5492, 121.0665, 'rented'
+  UNION ALL SELECT 2, 'YZA-1027', 'Subaru', 'Forester', 2022, 'Green', 27600, 14.6026, 121.0458, 'rented'
+  UNION ALL SELECT 2, 'ABC-1028', 'Chevrolet', 'Trailblazer', 2020, 'Black', 68000, 14.5751, 121.0128, 'rented'
+  UNION ALL SELECT 5, 'DEF-1029', 'Nissan', 'Navara', 2021, 'Orange', 50000, 14.5901, 121.0676, 'rented'
+  UNION ALL SELECT 5, 'GHI-1030', 'Mazda', 'BT-50', 2022, 'Gray', 34500, 14.5523, 121.0499, 'rented'
+  UNION ALL SELECT 1, 'JKL-1031', 'Toyota', 'Corolla', 2023, 'White', 14300, 14.6268, 121.0375, 'rented'
+  UNION ALL SELECT 1, 'MNP-1032', 'Honda', 'Accord', 2020, 'Blue', 62800, 14.5457, 121.0593, 'rented'
+  UNION ALL SELECT 1, 'QWE-1033', 'Kia', 'Soluto', 2024, 'Red', 6200, 14.6193, 121.0267, 'rented'
+  UNION ALL SELECT 2, 'RTY-1034', 'MG', 'ZS', 2023, 'Gray', 12300, 14.5664, 121.0805, 'rented'
+  UNION ALL SELECT 3, 'UIO-1035', 'Toyota', 'Avanza', 2021, 'Silver', 43000, 14.5879, 120.9944, 'available'
+  UNION ALL SELECT 3, 'PAS-1036', 'Honda', 'Mobilio', 2020, 'Gray', 49000, 14.6075, 121.0702, 'available'
+  UNION ALL SELECT 1, 'DFG-1037', 'Suzuki', 'Dzire', 2022, 'Blue', 23000, 14.5569, 121.0227, 'available'
+  UNION ALL SELECT 2, 'HJK-1038', 'Nissan', 'Terra', 2021, 'Black', 57500, 14.6242, 121.0548, 'available'
+  UNION ALL SELECT 2, 'LZX-1039', 'Ford', 'Explorer', 2020, 'White', 70000, 14.5938, 121.0134, 'available'
+  UNION ALL SELECT 2, 'CVB-1040', 'Toyota', 'Rush', 2023, 'Maroon', 11000, 14.5716, 121.0441, 'available'
+  UNION ALL SELECT 5, 'NMK-1041', 'Isuzu', 'D-Max', 2022, 'Brown', 32000, 14.6175, 121.0043, 'available'
+  UNION ALL SELECT 3, 'POI-1042', 'Mitsubishi', 'L300', 2021, 'White', 51000, 14.5401, 121.0609, 'available'
+  UNION ALL SELECT 1, 'TRE-1043', 'Hyundai', 'Accent', 2024, 'Silver', 5500, 14.6008, 121.0321, 'available'
+  UNION ALL SELECT 2, 'WQA-1044', 'Kia', 'Sportage', 2022, 'Green', 26900, 14.5847, 121.0075, 'available'
+  UNION ALL SELECT 2, 'SED-1045', 'Toyota', 'Land Cruiser', 2019, 'White', 99000, 14.6482, 121.0485, 'maintenance'
+  UNION ALL SELECT 3, 'RFV-1046', 'Ford', 'Transit', 2020, 'Blue', 88000, 14.5598, 121.0753, 'maintenance'
+  UNION ALL SELECT 2, 'TGB-1047', 'Mazda', 'CX-9', 2021, 'Red', 54000, 14.6129, 121.0221, 'maintenance'
+  UNION ALL SELECT 2, 'YHN-1048', 'Nissan', 'Patrol', 2018, 'Black', 120000, 14.5367, 121.0402, 'maintenance'
 ) AS seed
 WHERE NOT EXISTS (
   SELECT 1

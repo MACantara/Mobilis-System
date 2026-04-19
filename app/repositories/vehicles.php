@@ -6,8 +6,8 @@ if (!function_exists('getVehicles')) {
     {
         if (!dbConnected()) {
             return [
-                ['vehicle_id' => 1, 'category_id' => 2, 'name' => 'Toyota Fortuner', 'plate' => 'ABC-1234', 'category_name' => 'SUV', 'year' => 2022, 'color' => 'Blue', 'mileage_km' => 38200, 'status' => 'rented', 'daily_rate' => 3500],
-                ['vehicle_id' => 2, 'category_id' => 1, 'name' => 'Honda Civic', 'plate' => 'XYZ-5678', 'category_name' => 'Sedan', 'year' => 2023, 'color' => 'Gray', 'mileage_km' => 12500, 'status' => 'available', 'daily_rate' => 2200],
+                ['vehicle_id' => 1, 'category_id' => 2, 'name' => 'Toyota Fortuner', 'plate' => 'ABC-1234', 'category_name' => 'SUV', 'year' => 2022, 'color' => 'Blue', 'mileage_km' => 38200, 'latitude' => 14.6091, 'longitude' => 121.0223, 'status' => 'rented', 'daily_rate' => 3500],
+                ['vehicle_id' => 2, 'category_id' => 1, 'name' => 'Honda Civic', 'plate' => 'XYZ-5678', 'category_name' => 'Sedan', 'year' => 2023, 'color' => 'Gray', 'mileage_km' => 12500, 'latitude' => 14.5764, 'longitude' => 121.0851, 'status' => 'available', 'daily_rate' => 2200],
             ];
         }
 
@@ -22,6 +22,8 @@ if (!function_exists('getVehicles')) {
                     v.year,
                     v.color,
                     v.mileage_km,
+                    v.latitude,
+                    v.longitude,
                     v.status,
                     vc.daily_rate
                 FROM Vehicle v
@@ -34,7 +36,34 @@ if (!function_exists('getVehicles')) {
             $stmt->execute();
             return $stmt->fetchAll();
         } catch (Throwable $e) {
-            return [];
+            // If columns don't exist, try query without GPS columns
+            try {
+                $sql = "
+                    SELECT
+                        v.vehicle_id,
+                        v.category_id,
+                        CONCAT(v.brand, ' ', v.model) AS name,
+                        REPLACE(v.plate_number, ' ', '-') AS plate,
+                        vc.category_name,
+                        v.year,
+                        v.color,
+                        v.mileage_km,
+                        NULL AS latitude,
+                        NULL AS longitude,
+                        v.status,
+                        vc.daily_rate
+                    FROM Vehicle v
+                    INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
+                    ORDER BY v.vehicle_id DESC
+                    LIMIT :limit
+                ";
+                $stmt = db()->prepare($sql);
+                $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+                $stmt->execute();
+                return $stmt->fetchAll();
+            } catch (Throwable $e2) {
+                return [];
+            }
         }
     }
 }
