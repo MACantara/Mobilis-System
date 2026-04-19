@@ -8,40 +8,72 @@ if (!function_exists('trackingDefaultCenter')) {
     }
 }
 
-if (!function_exists('trackingRouteCatalog')) {
-    function trackingRouteCatalog(): array
+if (!function_exists('trackingRouteApiBase')) {
+    function trackingRouteApiBase(): string
     {
-        // Route waypoints are based on real Metro Manila road corridors.
-        return [
-            [
-                [14.5547, 121.0244], [14.5667, 121.0437], [14.5763, 121.0517], [14.5887, 121.0553],
-                [14.6009, 121.0471], [14.6172, 121.0408], [14.6325, 121.0339], [14.6404, 121.0250],
-                [14.6282, 121.0186], [14.6098, 121.0207], [14.5883, 121.0229], [14.5692, 121.0252],
-            ],
-            [
-                [14.5258, 121.0448], [14.5434, 121.0550], [14.5589, 121.0685], [14.5731, 121.0770],
-                [14.5906, 121.0808], [14.6090, 121.0794], [14.6263, 121.0762], [14.6421, 121.0698],
-                [14.6518, 121.0564], [14.6379, 121.0501], [14.6204, 121.0545], [14.6028, 121.0627],
-                [14.5860, 121.0688], [14.5678, 121.0611], [14.5489, 121.0523],
-            ],
-            [
-                [14.5412, 120.9934], [14.5540, 120.9907], [14.5664, 120.9879], [14.5808, 120.9839],
-                [14.5959, 120.9810], [14.6108, 120.9806], [14.6235, 120.9837], [14.6340, 120.9916],
-                [14.6299, 121.0048], [14.6160, 121.0089], [14.6008, 121.0068], [14.5854, 121.0048],
-                [14.5708, 121.0016], [14.5564, 120.9984],
-            ],
-            [
-                [14.5525, 121.0248], [14.5628, 121.0354], [14.5717, 121.0469], [14.5799, 121.0562],
-                [14.5871, 121.0660], [14.5952, 121.0728], [14.6034, 121.0697], [14.6098, 121.0607],
-                [14.6121, 121.0492], [14.6065, 121.0378], [14.5981, 121.0296], [14.5869, 121.0227],
-                [14.5754, 121.0191], [14.5638, 121.0196],
-            ],
-            [
-                [14.6044, 121.0320], [14.6148, 121.0419], [14.6257, 121.0508], [14.6351, 121.0622],
-                [14.6312, 121.0743], [14.6201, 121.0822], [14.6069, 121.0845], [14.5932, 121.0813],
-                [14.5821, 121.0738], [14.5765, 121.0611], [14.5814, 121.0482], [14.5918, 121.0382],
-            ],
-        ];
+        $envUrl = getenv('MOBILIS_ROUTING_URL');
+        if (is_string($envUrl) && $envUrl !== '') {
+            return rtrim($envUrl, '/');
+        }
+
+        return 'https://router.project-osrm.org/route/v1/driving';
+    }
+}
+
+if (!function_exists('trackingCacheDirectory')) {
+    function trackingCacheDirectory(): string
+    {
+        return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'mobilis_tracking_cache';
+    }
+}
+
+if (!function_exists('trackingCachePath')) {
+    function trackingCachePath(string $key): string
+    {
+        $safe = preg_replace('/[^a-zA-Z0-9_\-.]/', '_', $key);
+        return trackingCacheDirectory() . DIRECTORY_SEPARATOR . $safe . '.json';
+    }
+}
+
+if (!function_exists('trackingReadCache')) {
+    function trackingReadCache(string $key, int $ttlSeconds): ?array
+    {
+        $path = trackingCachePath($key);
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $mtime = @filemtime($path);
+        if (!is_int($mtime) || (time() - $mtime) > max(1, $ttlSeconds)) {
+            return null;
+        }
+
+        $raw = @file_get_contents($path);
+        if (!is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+}
+
+if (!function_exists('trackingWriteCache')) {
+    function trackingWriteCache(string $key, array $payload): void
+    {
+        $directory = trackingCacheDirectory();
+        if (!is_dir($directory)) {
+            @mkdir($directory, 0777, true);
+        }
+
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        @file_put_contents(
+            trackingCachePath($key),
+            json_encode($payload, JSON_UNESCAPED_UNICODE)
+        );
     }
 }
 
@@ -55,7 +87,270 @@ if (!function_exists('trackingHaversineMeters')) {
         $a = sin($dLat / 2) ** 2
             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * (sin($dLng / 2) ** 2);
 
-        return 2 * $earthRadius * atan2(sqrt($a), sqrt(max(0.0, 1 - $a)));
+        return 2 * $earthRadius * atan2(sqrt($a), sqrt(max(0.0, 1.0 - $a)));
+    }
+}
+
+if (!function_exists('trackingOffsetCoordinate')) {
+    function trackingOffsetCoordinate(array $origin, float $distanceMeters, float $bearingDegrees): array
+    {
+        $lat = (float) ($origin['lat'] ?? 0.0);
+        $lng = (float) ($origin['lng'] ?? 0.0);
+
+        $bearing = deg2rad($bearingDegrees);
+        $latRad = deg2rad($lat);
+
+        $metersPerDegreeLat = 111320.0;
+        $metersPerDegreeLng = 111320.0 * max(0.1, cos($latRad));
+
+        return [
+            'lat' => $lat + (($distanceMeters * cos($bearing)) / $metersPerDegreeLat),
+            'lng' => $lng + (($distanceMeters * sin($bearing)) / $metersPerDegreeLng),
+        ];
+    }
+}
+
+if (!function_exists('trackingVehicleCoordinatePool')) {
+    function trackingVehicleCoordinatePool(): array
+    {
+        static $pool = null;
+        if (is_array($pool)) {
+            return $pool;
+        }
+
+        $pool = [];
+
+        foreach (getVehicles(300) as $vehicle) {
+            $lat = isset($vehicle['latitude']) ? (float) $vehicle['latitude'] : 0.0;
+            $lng = isset($vehicle['longitude']) ? (float) $vehicle['longitude'] : 0.0;
+            if ($lat === 0.0 || $lng === 0.0) {
+                continue;
+            }
+
+            $pool[] = ['lat' => $lat, 'lng' => $lng];
+        }
+
+        return $pool;
+    }
+}
+
+if (!function_exists('trackingDynamicAnchors')) {
+    function trackingDynamicAnchors(): array
+    {
+        $pool = trackingVehicleCoordinatePool();
+
+        if ($pool !== []) {
+            $latSum = 0.0;
+            $lngSum = 0.0;
+            foreach ($pool as $point) {
+                $latSum += (float) $point['lat'];
+                $lngSum += (float) $point['lng'];
+            }
+
+            $center = [
+                'lat' => $latSum / count($pool),
+                'lng' => $lngSum / count($pool),
+            ];
+
+            $minLat = $pool[0];
+            $maxLat = $pool[0];
+            $minLng = $pool[0];
+            $maxLng = $pool[0];
+
+            foreach ($pool as $point) {
+                if ($point['lat'] < $minLat['lat']) {
+                    $minLat = $point;
+                }
+                if ($point['lat'] > $maxLat['lat']) {
+                    $maxLat = $point;
+                }
+                if ($point['lng'] < $minLng['lng']) {
+                    $minLng = $point;
+                }
+                if ($point['lng'] > $maxLng['lng']) {
+                    $maxLng = $point;
+                }
+            }
+
+            $anchors = [$center, $maxLat, $maxLng, $minLat, $minLng, $center];
+        } else {
+            $center = trackingDefaultCenter();
+            $anchors = [
+                $center,
+                trackingOffsetCoordinate($center, 1900.0, 20.0),
+                trackingOffsetCoordinate($center, 1700.0, 110.0),
+                trackingOffsetCoordinate($center, 1800.0, 210.0),
+                trackingOffsetCoordinate($center, 1650.0, 300.0),
+                $center,
+            ];
+        }
+
+        return array_map(static function (array $point): array {
+            return [
+                'lat' => round((float) ($point['lat'] ?? 0.0), 6),
+                'lng' => round((float) ($point['lng'] ?? 0.0), 6),
+            ];
+        }, $anchors);
+    }
+}
+
+if (!function_exists('trackingAnchorVariants')) {
+    function trackingAnchorVariants(array $anchors): array
+    {
+        $count = count($anchors);
+        if ($count < 4) {
+            return [$anchors];
+        }
+
+        $start = $anchors[0];
+        $end = $anchors[$count - 1];
+        $middle = array_slice($anchors, 1, $count - 2);
+
+        if (count($middle) < 3) {
+            return [$anchors];
+        }
+
+        $variants = [];
+        $rotationCount = min(3, count($middle));
+
+        for ($shift = 0; $shift < $rotationCount; $shift++) {
+            $rotated = array_merge(
+                array_slice($middle, $shift),
+                array_slice($middle, 0, $shift)
+            );
+            $variants[] = array_merge([$start], $rotated, [$end]);
+        }
+
+        return $variants;
+    }
+}
+
+if (!function_exists('trackingFetchRouteFromMap')) {
+    function trackingFetchRouteFromMap(array $anchors): ?array
+    {
+        $coordinateParts = [];
+        foreach ($anchors as $point) {
+            $lat = (float) ($point['lat'] ?? 0.0);
+            $lng = (float) ($point['lng'] ?? 0.0);
+            $coordinateParts[] = sprintf('%.6f,%.6f', $lng, $lat);
+        }
+
+        if (count($coordinateParts) < 2) {
+            return null;
+        }
+
+        $url = trackingRouteApiBase() . '/' . implode(';', $coordinateParts)
+            . '?overview=full&geometries=geojson&steps=false';
+
+        $body = null;
+        $httpStatus = 0;
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 3,
+                CURLOPT_TIMEOUT => 6,
+                CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            ]);
+
+            $response = curl_exec($ch);
+            if (is_string($response)) {
+                $body = $response;
+            }
+            $httpStatus = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+        } else {
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Accept: application/json\r\n",
+                    'timeout' => 6,
+                ],
+            ]);
+
+            $response = @file_get_contents($url, false, $context);
+            if (is_string($response)) {
+                $body = $response;
+                $httpStatus = 200;
+            }
+        }
+
+        if (!is_string($body) || $body === '' || $httpStatus < 200 || $httpStatus >= 300) {
+            return null;
+        }
+
+        $payload = json_decode($body, true);
+        $coordinates = $payload['routes'][0]['geometry']['coordinates'] ?? null;
+
+        $points = [];
+        foreach ($coordinates as $coord) {
+            if (!is_array($coord) || count($coord) < 2) {
+                continue;
+            }
+
+            $points[] = [
+                'lat' => round($coord[1], 6),
+                'lng' => round($coord[0], 6),
+            ];
+        }
+
+        return count($points) >= 2 ? $points : null;
+    }
+}
+
+if (!function_exists('trackingBuildRouteMetrics')) {
+    function trackingBuildRouteMetrics(array $points): ?array
+    {
+        if (count($points) < 2) {
+            return null;
+        }
+
+        $segments = [];
+        $pointStarts = [];
+        $distance = 0.0;
+
+        $lastIndex = count($points) - 1;
+        for ($i = 0; $i < $lastIndex; $i++) {
+            $pointStarts[$i] = $distance;
+
+            $from = $points[$i];
+            $to = $points[$i + 1];
+
+            $segmentLength = trackingHaversineMeters(
+                (float) ($from['lat'] ?? 0.0),
+                (float) ($from['lng'] ?? 0.0),
+                (float) ($to['lat'] ?? 0.0),
+                (float) ($to['lng'] ?? 0.0)
+            );
+
+            if ($segmentLength <= 0.0) {
+                continue;
+            }
+
+            $segments[] = [
+                'from' => $i,
+                'to' => $i + 1,
+                'start' => $distance,
+                'length' => $segmentLength,
+            ];
+
+            $distance += $segmentLength;
+        }
+
+        $pointStarts[$lastIndex] = $distance;
+
+        if ($distance <= 0.0 || $segments === []) {
+            return null;
+        }
+
+        return [
+            'points' => $points,
+            'segments' => $segments,
+            'point_starts' => $pointStarts,
+            'total' => $distance,
+        ];
     }
 }
 
@@ -69,70 +364,53 @@ if (!function_exists('trackingRouteMetrics')) {
 
         $routes = [];
 
-        foreach (trackingRouteCatalog() as $rawRoute) {
-            $points = [];
-            foreach ($rawRoute as $rawPoint) {
-                $points[] = [
-                    'lat' => (float) ($rawPoint[0] ?? 0),
-                    'lng' => (float) ($rawPoint[1] ?? 0),
-                ];
+        $cacheKey = 'map_routes_v1';
+        $cached = trackingReadCache($cacheKey, 1800);
+
+        $routePointSets = [];
+        if (is_array($cached) && isset($cached['routes']) && is_array($cached['routes'])) {
+            $routePointSets = $cached['routes'];
+        } else {
+            $anchors = trackingDynamicAnchors();
+            $variants = trackingAnchorVariants($anchors);
+
+            foreach ($variants as $variant) {
+                $points = trackingFetchRouteFromMap($variant);
+                if ($points === null) {
+                    $points = $variant;
+                }
+                $routePointSets[] = $points;
             }
 
-            $pointCount = count($points);
-            if ($pointCount < 2) {
+            trackingWriteCache($cacheKey, ['routes' => $routePointSets]);
+        }
+
+        foreach ($routePointSets as $points) {
+            if (!is_array($points)) {
                 continue;
             }
 
-            $segments = [];
-            $pointStarts = [];
-            $distance = 0.0;
-
-            for ($i = 0; $i < $pointCount; $i++) {
-                $pointStarts[$i] = $distance;
-
-                $next = ($i + 1) % $pointCount;
-                if ($next === 0 && $pointCount < 3) {
-                    break;
-                }
-
-                $segmentLength = trackingHaversineMeters(
-                    $points[$i]['lat'],
-                    $points[$i]['lng'],
-                    $points[$next]['lat'],
-                    $points[$next]['lng']
-                );
-
-                if ($segmentLength <= 0.0) {
-                    if ($next === 0) {
-                        break;
-                    }
-                    continue;
-                }
-
-                $segments[] = [
-                    'from' => $i,
-                    'to' => $next,
-                    'start' => $distance,
-                    'length' => $segmentLength,
-                ];
-
-                $distance += $segmentLength;
-
-                if ($next === 0) {
-                    break;
-                }
+            $metrics = trackingBuildRouteMetrics($points);
+            if ($metrics !== null) {
+                $routes[] = $metrics;
             }
+        }
 
-            if ($distance <= 0.0 || $segments === []) {
-                continue;
-            }
-
-            $routes[] = [
-                'points' => $points,
-                'segments' => $segments,
-                'point_starts' => $pointStarts,
-                'total' => $distance,
+        if ($routes === []) {
+            $center = trackingDefaultCenter();
+            $fallback = [
+                $center,
+                trackingOffsetCoordinate($center, 1200.0, 45.0),
+                trackingOffsetCoordinate($center, 1200.0, 135.0),
+                trackingOffsetCoordinate($center, 1200.0, 225.0),
+                trackingOffsetCoordinate($center, 1200.0, 315.0),
+                $center,
             ];
+
+            $metrics = trackingBuildRouteMetrics($fallback);
+            if ($metrics !== null) {
+                $routes[] = $metrics;
+            }
         }
 
         return $routes;
@@ -149,20 +427,7 @@ if (!function_exists('trackingBaseCoordinate')) {
             return ['lat' => $lat, 'lng' => $lng];
         }
 
-        $routes = trackingRouteMetrics();
-        if ($routes === []) {
-            return trackingDefaultCenter();
-        }
-
-        $vehicleId = (int) ($vehicle['vehicle_id'] ?? 0);
-        $route = $routes[abs($vehicleId) % count($routes)];
-        $points = (array) ($route['points'] ?? []);
-        if ($points === []) {
-            return trackingDefaultCenter();
-        }
-
-        $index = abs($vehicleId * 3) % count($points);
-        return $points[$index];
+        return trackingDefaultCenter();
     }
 }
 
@@ -184,10 +449,10 @@ if (!function_exists('trackingSelectRouteForVehicle')) {
 
             foreach ($points as $index => $point) {
                 $distance = trackingHaversineMeters(
-                    (float) $base['lat'],
-                    (float) $base['lng'],
-                    (float) ($point['lat'] ?? 0),
-                    (float) ($point['lng'] ?? 0)
+                    (float) ($base['lat'] ?? 0.0),
+                    (float) ($base['lng'] ?? 0.0),
+                    (float) ($point['lat'] ?? 0.0),
+                    (float) ($point['lng'] ?? 0.0)
                 );
 
                 if ($distance < $bestDistance) {
@@ -207,7 +472,6 @@ if (!function_exists('trackingSelectRouteForVehicle')) {
             return null;
         }
 
-        // Small deterministic spacing to avoid marker overlap while staying on route.
         $staggerMeters = (abs($vehicleId) % 11) * 35.0;
 
         return [
@@ -305,6 +569,9 @@ if (!function_exists('trackingSimulatedCoordinate')) {
         $status = (string) ($vehicle['status'] ?? 'available');
         $metersPerTick = trackingMetersPerTick($status, $stepSeconds);
         $travelDistance = fmod((float) ($selection['start'] ?? 0.0) + ($tick * $metersPerTick), $routeTotal);
+        if ($travelDistance < 0.0) {
+            $travelDistance += $routeTotal;
+        }
         $point = trackingInterpolatePoint($route, $travelDistance);
 
         return [
