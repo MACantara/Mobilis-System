@@ -1,6 +1,33 @@
 <?php
 declare(strict_types=1);
 
+if (!function_exists('ensureAdminContactMessageResponseColumns')) {
+    function ensureAdminContactMessageResponseColumns(): void
+    {
+        static $ensured = false;
+        if ($ensured || !dbConnected()) {
+            return;
+        }
+
+        $ensured = true;
+
+        $ddl = [
+            "ALTER TABLE AdminContactMessage ADD COLUMN admin_response TEXT NULL AFTER message",
+            "ALTER TABLE AdminContactMessage ADD COLUMN responded_at TIMESTAMP NULL DEFAULT NULL AFTER created_at",
+            "ALTER TABLE AdminContactMessage ADD COLUMN responded_by INT UNSIGNED NULL AFTER responded_at",
+            "ALTER TABLE AdminContactMessage ADD KEY idx_admin_contact_responded_at (responded_at)",
+        ];
+
+        foreach ($ddl as $sql) {
+            try {
+                db()->exec($sql);
+            } catch (Throwable $e) {
+                // Ignore when columns/indexes already exist.
+            }
+        }
+    }
+}
+
 if (!function_exists('submitAdminContactMessage')) {
     function submitAdminContactMessage(string $fullName, string $email, string $phone, string $subject, string $message): bool
     {
@@ -83,13 +110,18 @@ if (!function_exists('getAdminContactMessages')) {
                     'email' => 'ana@email.com',
                     'phone' => '+63 919 345 6789',
                     'subject' => 'Need account activation',
+                    'message' => 'Please activate my account.',
+                    'admin_response' => null,
                     'status' => 'new',
                     'created_at' => '2026-04-19 09:30:00',
+                    'responded_at' => null,
                 ],
             ];
         }
 
         try {
+            ensureAdminContactMessageResponseColumns();
+
             $sql = "
                 SELECT
                     message_id,
@@ -97,8 +129,11 @@ if (!function_exists('getAdminContactMessages')) {
                     email,
                     phone,
                     subject,
+                    message,
+                    admin_response,
                     status,
-                    created_at
+                    created_at,
+                    responded_at
                 FROM AdminContactMessage
                 ORDER BY created_at DESC
                 LIMIT :limit
@@ -109,6 +144,99 @@ if (!function_exists('getAdminContactMessages')) {
             return $stmt->fetchAll();
         } catch (Throwable $e) {
             return [];
+        }
+    }
+}
+
+if (!function_exists('getAdminContactMessagesByEmail')) {
+    function getAdminContactMessagesByEmail(string $email, int $limit = 5): array
+    {
+        $email = strtolower(trim($email));
+        if ($email === '') {
+            return [];
+        }
+
+        if (!dbConnected()) {
+            return [];
+        }
+
+        try {
+            ensureAdminContactMessageResponseColumns();
+
+            $sql = "
+                SELECT
+                    message_id,
+                    subject,
+                    message,
+                    status,
+                    admin_response,
+                    created_at,
+                    responded_at
+                FROM AdminContactMessage
+                WHERE email = :email
+                ORDER BY created_at DESC
+                LIMIT :limit
+            ";
+
+            $stmt = db()->prepare($sql);
+            $stmt->bindValue(':email', $email);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('respondToAdminContactMessage')) {
+    function respondToAdminContactMessage(int $messageId, int $adminUserId, string $status, string $response): array
+    {
+        if ($messageId <= 0) {
+            return ['ok' => false, 'error' => 'Invalid message ID.'];
+        }
+
+        $normalizedStatus = strtolower(trim($status));
+        if (!in_array($normalizedStatus, ['read', 'resolved'], true)) {
+            return ['ok' => false, 'error' => 'Invalid status selected.'];
+        }
+
+        if (trim($response) === '') {
+            return ['ok' => false, 'error' => 'Response message is required.'];
+        }
+
+        if (!dbConnected()) {
+            return ['ok' => false, 'error' => 'Database is not connected.'];
+        }
+
+        try {
+            ensureAdminContactMessageResponseColumns();
+
+            $sql = "
+                UPDATE AdminContactMessage
+                SET
+                    status = :status,
+                    admin_response = :admin_response,
+                    responded_at = NOW(),
+                    responded_by = :responded_by
+                WHERE message_id = :message_id
+            ";
+
+            $stmt = db()->prepare($sql);
+            $stmt->execute([
+                'status' => $normalizedStatus,
+                'admin_response' => trim($response),
+                'responded_by' => $adminUserId > 0 ? $adminUserId : null,
+                'message_id' => $messageId,
+            ]);
+
+            if ((int) $stmt->rowCount() <= 0) {
+                return ['ok' => false, 'error' => 'Message not found or unchanged.'];
+            }
+
+            return ['ok' => true];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'error' => 'Could not save response right now.'];
         }
     }
 }
