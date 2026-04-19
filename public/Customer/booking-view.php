@@ -71,6 +71,7 @@ viewBegin('app', appLayoutData('Booking details', 'bookings', ['role' => 'custom
             <div><dt>Trip days</dt><dd><?= (int) ($booking['days'] ?? 0) ?></dd></div>
             <div><dt>Status</dt><dd><span class="pill <?= htmlspecialchars($statusKey) ?>"><?= htmlspecialchars(ucfirst($statusKey)) ?></span></dd></div>
             <div><dt>Payment</dt><dd><span class="pill <?= htmlspecialchars((string) ($booking['payment_status'] ?? 'unpaid')) ?>"><?= htmlspecialchars(ucfirst((string) ($booking['payment_status'] ?? 'unpaid'))) ?></span></dd></div>
+            <div><dt>Method</dt><dd><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($booking['payment_method'] ?? 'pending')))) ?></dd></div>
             <div><dt>Total</dt><dd><strong>P<?= number_format((float) ($booking['total'] ?? 0), 2) ?></strong></dd></div>
             <div><dt>Invoice</dt><dd>INV-<?= str_pad((string) ((int) ($booking['invoice_id'] ?? 0)), 4, '0', STR_PAD_LEFT) ?></dd></div>
         </dl>
