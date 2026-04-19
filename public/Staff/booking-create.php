@@ -10,7 +10,7 @@ $vehicles = getVehicles(200);
 $errors = [];
 $success = '';
 $form = [
-    'customer_id' => (string) ((int) ($_GET['customer_id'] ?? 0)),
+    'user_id' => (string) ((int) ($_GET['user_id'] ?? 0)),
     'vehicle_id' => (string) ((int) ($_GET['vehicle_id'] ?? 0)),
     'pickup_date' => date('Y-m-d'),
     'return_date' => date('Y-m-d', strtotime('+1 day')),
@@ -18,14 +18,14 @@ $form = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $form['customer_id'] = (string) ((int) ($_POST['customer_id'] ?? 0));
+    $form['user_id'] = (string) ((int) ($_POST['user_id'] ?? 0));
     $form['vehicle_id'] = (string) ((int) ($_POST['vehicle_id'] ?? 0));
     $form['pickup_date'] = trim((string) ($_POST['pickup_date'] ?? ''));
     $form['return_date'] = trim((string) ($_POST['return_date'] ?? ''));
     $form['notes'] = trim((string) ($_POST['notes'] ?? ''));
 
     $result = createRentalBooking(
-        (int) $form['customer_id'],
+        (int) $form['user_id'],
         (int) $form['vehicle_id'],
         $form['pickup_date'],
         $form['return_date'],
@@ -65,11 +65,11 @@ viewBegin('app', appLayoutData('New booking', 'bookings', [
 
     <form method="post" class="customer-form-grid">
         <label>Customer
-            <select name="customer_id" required>
+            <select name="user_id" required>
                 <option value="">Select customer</option>
                 <?php foreach ($customers as $customer): ?>
-                    <?php $id = (int) ($customer['customer_id'] ?? 0); ?>
-                    <option value="<?= $id ?>" <?= (string) $id === $form['customer_id'] ? 'selected' : '' ?>>
+                    <?php $id = (int) ($customer['user_id'] ?? 0); ?>
+                    <option value="<?= $id ?>" <?= (string) $id === $form['user_id'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars((string) ($customer['name'] ?? '')) ?>
                     </option>
                 <?php endforeach; ?>

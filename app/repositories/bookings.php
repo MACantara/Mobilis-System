@@ -46,11 +46,11 @@ if (!function_exists('createRentalBooking')) {
             }
 
             $insertRental = $pdo->prepare(
-                "INSERT INTO Rental (customer_id, vehicle_id, pickup_date, return_date, status, notes)
-                 VALUES (:customer_id, :vehicle_id, :pickup_date, :return_date, 'active', :notes)"
+                "INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, status, notes)
+                 VALUES (:user_id, :vehicle_id, :pickup_date, :return_date, 'active', :notes)"
             );
             $insertRental->execute([
-                'customer_id' => $customerId,
+                'user_id' => $customerId,
                 'vehicle_id' => $vehicleId,
                 'pickup_date' => $pickupDate,
                 'return_date' => $returnDate,
@@ -90,12 +90,12 @@ if (!function_exists('getBookings')) {
     {
         if (!dbConnected()) {
             return [
-                ['rental_id' => 412, 'customer_id' => 1, 'customer' => 'Maria Reyes', 'customer_email' => 'maria@email.com', 'vehicle_id' => 1, 'vehicle' => 'Toyota Fortuner', 'pickup_date' => '2026-04-13', 'return_date' => '2026-04-16', 'status' => 'confirmed', 'payment_status' => 'paid', 'days' => 3, 'total' => 10500],
-                ['rental_id' => 411, 'customer_id' => 2, 'customer' => 'Juan dela Cruz', 'customer_email' => 'jdc@email.com', 'vehicle_id' => 2, 'vehicle' => 'Honda Civic', 'pickup_date' => '2026-04-14', 'return_date' => '2026-04-14', 'status' => 'pending', 'payment_status' => 'unpaid', 'days' => 1, 'total' => 2200],
-                ['rental_id' => 410, 'customer_id' => 3, 'customer' => 'Ana Lim', 'customer_email' => 'ana@email.com', 'vehicle_id' => 3, 'vehicle' => 'Toyota HiAce', 'pickup_date' => '2026-04-15', 'return_date' => '2026-04-20', 'status' => 'confirmed', 'payment_status' => 'paid', 'days' => 5, 'total' => 20000],
-                ['rental_id' => 409, 'customer_id' => 4, 'customer' => 'Ramon Santos', 'customer_email' => 'ramon@email.com', 'vehicle_id' => 4, 'vehicle' => 'Ford Ranger', 'pickup_date' => '2026-04-17', 'return_date' => '2026-04-19', 'status' => 'confirmed', 'payment_status' => 'unpaid', 'days' => 2, 'total' => 6400],
-                ['rental_id' => 408, 'customer_id' => 5, 'customer' => 'Pedro Cruz', 'customer_email' => 'pedz@email.com', 'vehicle_id' => 5, 'vehicle' => 'Mitsubishi Xpander', 'pickup_date' => '2026-04-10', 'return_date' => '2026-04-12', 'status' => 'completed', 'payment_status' => 'paid', 'days' => 2, 'total' => 5600],
-                ['rental_id' => 407, 'customer_id' => 6, 'customer' => 'Lisa Garcia', 'customer_email' => 'lisag@email.com', 'vehicle_id' => 6, 'vehicle' => 'Hyundai Tucson', 'pickup_date' => '2026-04-08', 'return_date' => '2026-04-08', 'status' => 'cancelled', 'payment_status' => 'unpaid', 'days' => 1, 'total' => 3800],
+                ['rental_id' => 412, 'user_id' => 4, 'customer' => 'Maria Reyes', 'customer_email' => 'maria@email.com', 'vehicle_id' => 1, 'vehicle' => 'Toyota Fortuner', 'pickup_date' => '2026-04-13', 'return_date' => '2026-04-16', 'status' => 'confirmed', 'payment_status' => 'paid', 'days' => 3, 'total' => 10500],
+                ['rental_id' => 411, 'user_id' => 5, 'customer' => 'Juan dela Cruz', 'customer_email' => 'jdc@email.com', 'vehicle_id' => 2, 'vehicle' => 'Honda Civic', 'pickup_date' => '2026-04-14', 'return_date' => '2026-04-14', 'status' => 'pending', 'payment_status' => 'unpaid', 'days' => 1, 'total' => 2200],
+                ['rental_id' => 410, 'user_id' => 6, 'customer' => 'Ana Lim', 'customer_email' => 'ana@email.com', 'vehicle_id' => 3, 'vehicle' => 'Toyota HiAce', 'pickup_date' => '2026-04-15', 'return_date' => '2026-04-20', 'status' => 'confirmed', 'payment_status' => 'paid', 'days' => 5, 'total' => 20000],
+                ['rental_id' => 409, 'user_id' => 7, 'customer' => 'Ramon Santos', 'customer_email' => 'ramon@email.com', 'vehicle_id' => 4, 'vehicle' => 'Ford Ranger', 'pickup_date' => '2026-04-17', 'return_date' => '2026-04-19', 'status' => 'confirmed', 'payment_status' => 'unpaid', 'days' => 2, 'total' => 6400],
+                ['rental_id' => 408, 'user_id' => 8, 'customer' => 'Pedro Cruz', 'customer_email' => 'pedz@email.com', 'vehicle_id' => 5, 'vehicle' => 'Mitsubishi Xpander', 'pickup_date' => '2026-04-10', 'return_date' => '2026-04-12', 'status' => 'completed', 'payment_status' => 'paid', 'days' => 2, 'total' => 5600],
+                ['rental_id' => 407, 'user_id' => 9, 'customer' => 'Lisa Garcia', 'customer_email' => 'lisag@email.com', 'vehicle_id' => 6, 'vehicle' => 'Hyundai Tucson', 'pickup_date' => '2026-04-08', 'return_date' => '2026-04-08', 'status' => 'cancelled', 'payment_status' => 'unpaid', 'days' => 1, 'total' => 3800],
             ];
         }
 
@@ -103,9 +103,9 @@ if (!function_exists('getBookings')) {
             $sql = "
                 SELECT
                     r.rental_id,
-                    r.customer_id,
-                    CONCAT(c.first_name, ' ', c.last_name) AS customer,
-                    c.email AS customer_email,
+                    r.user_id,
+                    CONCAT(u.first_name, ' ', u.last_name) AS customer,
+                    u.email AS customer_email,
                     r.vehicle_id,
                     i.invoice_id,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
@@ -116,7 +116,7 @@ if (!function_exists('getBookings')) {
                     GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1) AS days,
                     COALESCE(i.total_amount, vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1)) AS total
                 FROM Rental r
-                INNER JOIN Customer c ON c.customer_id = r.customer_id
+                INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
                 LEFT JOIN Invoice i ON i.rental_id = r.rental_id
@@ -297,7 +297,7 @@ if (!function_exists('getCustomerBookings')) {
             $sql = "
                 SELECT
                     r.rental_id,
-                    r.customer_id,
+                    r.user_id,
                     r.vehicle_id,
                     i.invoice_id,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
@@ -308,11 +308,11 @@ if (!function_exists('getCustomerBookings')) {
                     GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1) AS days,
                     COALESCE(i.total_amount, vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1)) AS total
                 FROM Rental r
-                INNER JOIN Customer c ON c.customer_id = r.customer_id
+                INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
                 LEFT JOIN Invoice i ON i.rental_id = r.rental_id
-                WHERE c.email = :email
+                WHERE u.email = :email
                 ORDER BY r.pickup_date DESC
                 LIMIT :limit
             ";
@@ -347,7 +347,7 @@ if (!function_exists('getCustomerBookingsByCustomerId')) {
         if (!dbConnected()) {
             return array_values(array_filter(
                 getBookings(max($limit, 500)),
-                static fn(array $booking): bool => (int) ($booking['customer_id'] ?? 0) === $customerId
+                static fn(array $booking): bool => (int) ($booking['user_id'] ?? 0) === $customerId
             ));
         }
 
@@ -355,7 +355,7 @@ if (!function_exists('getCustomerBookingsByCustomerId')) {
             $sql = "
                 SELECT
                     r.rental_id,
-                    r.customer_id,
+                    r.user_id,
                     r.vehicle_id,
                     i.invoice_id,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
@@ -369,12 +369,12 @@ if (!function_exists('getCustomerBookingsByCustomerId')) {
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 INNER JOIN VehicleCategory vc ON vc.category_id = v.category_id
                 LEFT JOIN Invoice i ON i.rental_id = r.rental_id
-                WHERE r.customer_id = :customer_id
+                WHERE r.user_id = :user_id
                 ORDER BY r.pickup_date DESC
                 LIMIT :limit
             ";
             $stmt = db()->prepare($sql);
-            $stmt->bindValue(':customer_id', $customerId, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id', $customerId, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
 
@@ -439,12 +439,12 @@ if (!function_exists('cancelCustomerBooking')) {
             $stmt = $pdo->prepare(
                 'SELECT rental_id, vehicle_id, status, notes
                  FROM Rental
-                 WHERE rental_id = :rental_id AND customer_id = :customer_id
+                 WHERE rental_id = :rental_id AND user_id = :user_id
                  FOR UPDATE'
             );
             $stmt->execute([
                 'rental_id' => $rentalId,
-                'customer_id' => $customerId,
+                'user_id' => $customerId,
             ]);
             $booking = $stmt->fetch();
 

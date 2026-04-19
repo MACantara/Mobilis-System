@@ -95,7 +95,7 @@ if (!function_exists('getUpcomingBookings')) {
                         ELSE 'pending'
                     END AS status
                 FROM Rental r
-                INNER JOIN Customer c ON c.customer_id = r.customer_id
+                INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 WHERE r.pickup_date >= :today
                 ORDER BY r.pickup_date ASC

@@ -32,7 +32,7 @@ fputcsv($output, [
 
 foreach ($customers as $customer) {
     fputcsv($output, [
-        (int) ($customer['customer_id'] ?? 0),
+        (int) ($customer['user_id'] ?? 0),
         (string) ($customer['name'] ?? ''),
         (string) ($customer['email'] ?? ''),
         (string) ($customer['phone'] ?? ''),

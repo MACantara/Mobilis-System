@@ -7,7 +7,7 @@ if (!function_exists('getCustomers')) {
         if (!dbConnected()) {
             return [
                 [
-                    'customer_id' => 1,
+                    'user_id' => 4,
                     'name' => 'Maria Reyes',
                     'email' => 'maria@email.com',
                     'phone' => '+63 917 123 4567',
@@ -22,7 +22,7 @@ if (!function_exists('getCustomers')) {
                     'tier' => 'VIP',
                 ],
                 [
-                    'customer_id' => 2,
+                    'user_id' => 5,
                     'name' => 'Juan dela Cruz',
                     'email' => 'jdc@email.com',
                     'phone' => '+63 918 234 5678',
@@ -42,22 +42,23 @@ if (!function_exists('getCustomers')) {
         try {
             $sql = "
                 SELECT
-                    c.customer_id,
-                    CONCAT(c.first_name, ' ', c.last_name) AS name,
-                    c.email,
-                    c.phone,
-                    c.license_number,
-                    c.license_expiry,
-                    c.address,
-                    c.created_at,
+                    u.user_id,
+                    CONCAT(u.first_name, ' ', u.last_name) AS name,
+                    u.email,
+                    u.phone,
+                    u.license_number,
+                    u.license_expiry,
+                    u.address,
+                    u.created_at,
                     COUNT(DISTINCT r.rental_id) AS bookings,
                     COALESCE(SUM(i.total_amount), 0) AS spent,
                     COALESCE(AVG(GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1)), 0) AS avg_rental_days,
                     SUM(CASE WHEN r.status = 'cancelled' THEN 1 ELSE 0 END) AS no_shows
-                FROM Customer c
-                LEFT JOIN Rental r ON r.customer_id = c.customer_id
+                FROM User u
+                LEFT JOIN Rental r ON r.user_id = u.user_id
                 LEFT JOIN Invoice i ON i.rental_id = r.rental_id
-                GROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.phone, c.license_number, c.license_expiry, c.address, c.created_at
+                WHERE u.role = 'customer'
+                GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.phone, u.license_number, u.license_expiry, u.address, u.created_at
                 ORDER BY spent DESC, bookings DESC
                 LIMIT :limit
             ";
@@ -87,7 +88,7 @@ if (!function_exists('getCustomers')) {
 }
 
 if (!function_exists('getCustomerRecentBookings')) {
-    function getCustomerRecentBookings(int $customerId, int $limit = 3): array
+    function getCustomerRecentBookings(int $userId, int $limit = 3): array
     {
         if (!dbConnected()) {
             return [
@@ -115,13 +116,13 @@ if (!function_exists('getCustomerRecentBookings')) {
                     END AS status
                 FROM Rental r
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
-                WHERE r.customer_id = :customer_id
+                WHERE r.user_id = :user_id
                 ORDER BY r.pickup_date DESC
                 LIMIT :limit
             ";
 
             $stmt = db()->prepare($sql);
-            $stmt->bindValue(':customer_id', $customerId, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll();
@@ -132,15 +133,15 @@ if (!function_exists('getCustomerRecentBookings')) {
 }
 
 if (!function_exists('getCustomerById')) {
-    function getCustomerById(int $customerId): ?array
+    function getCustomerById(int $userId): ?array
     {
-        if ($customerId <= 0) {
+        if ($userId <= 0) {
             return null;
         }
 
         if (!dbConnected()) {
             foreach (getCustomers(50) as $customer) {
-                if ((int) ($customer['customer_id'] ?? 0) === $customerId) {
+                if ((int) ($customer['user_id'] ?? 0) === $userId) {
                     return $customer;
                 }
             }
@@ -150,22 +151,22 @@ if (!function_exists('getCustomerById')) {
         try {
             $sql = "
                 SELECT
-                    c.customer_id,
-                    c.first_name,
-                    c.last_name,
-                    CONCAT(c.first_name, ' ', c.last_name) AS name,
-                    c.email,
-                    c.phone,
-                    c.license_number,
-                    c.license_expiry,
-                    c.address,
-                    c.created_at
-                FROM Customer c
-                WHERE c.customer_id = :customer_id
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    CONCAT(u.first_name, ' ', u.last_name) AS name,
+                    u.email,
+                    u.phone,
+                    u.license_number,
+                    u.license_expiry,
+                    u.address,
+                    u.created_at
+                FROM User u
+                WHERE u.user_id = :user_id
                 LIMIT 1
             ";
             $stmt = db()->prepare($sql);
-            $stmt->execute(['customer_id' => $customerId]);
+            $stmt->execute(['user_id' => $userId]);
             $row = $stmt->fetch();
             return $row ?: null;
         } catch (Throwable $e) {
@@ -183,14 +184,16 @@ if (!function_exists('createCustomer')) {
 
         try {
             $sql = "
-                INSERT INTO Customer (
+                INSERT INTO User (
                     first_name,
                     last_name,
                     email,
                     phone,
                     license_number,
                     license_expiry,
-                    address
+                    address,
+                    role,
+                    password_hash
                 ) VALUES (
                     :first_name,
                     :last_name,
@@ -198,9 +201,13 @@ if (!function_exists('createCustomer')) {
                     :phone,
                     :license_number,
                     :license_expiry,
-                    :address
+                    :address,
+                    'customer',
+                    :password_hash
                 )
             ";
+
+            $passwordHash = isset($payload['password']) ? password_hash($payload['password'], PASSWORD_BCRYPT) : password_hash('password', PASSWORD_BCRYPT);
 
             $stmt = db()->prepare($sql);
             $stmt->execute([
@@ -208,12 +215,13 @@ if (!function_exists('createCustomer')) {
                 'last_name' => trim((string) ($payload['last_name'] ?? '')),
                 'email' => strtolower(trim((string) ($payload['email'] ?? ''))),
                 'phone' => trim((string) ($payload['phone'] ?? '')),
-                'license_number' => trim((string) ($payload['license_number'] ?? '')),
-                'license_expiry' => trim((string) ($payload['license_expiry'] ?? '')),
-                'address' => trim((string) ($payload['address'] ?? '')),
+                'license_number' => trim((string) ($payload['license_number'] ?? '')) ?: null,
+                'license_expiry' => trim((string) ($payload['license_expiry'] ?? '')) ?: null,
+                'address' => trim((string) ($payload['address'] ?? '')) ?: null,
+                'password_hash' => $passwordHash,
             ]);
 
-            return ['ok' => true, 'customer_id' => (int) db()->lastInsertId()];
+            return ['ok' => true, 'user_id' => (int) db()->lastInsertId()];
         } catch (Throwable $e) {
             return ['ok' => false, 'error' => 'Could not create customer. Email or license number might already exist.'];
         }
@@ -221,10 +229,10 @@ if (!function_exists('createCustomer')) {
 }
 
 if (!function_exists('updateCustomer')) {
-    function updateCustomer(int $customerId, array $payload): array
+    function updateCustomer(int $userId, array $payload): array
     {
-        if ($customerId <= 0) {
-            return ['ok' => false, 'error' => 'Invalid customer ID.'];
+        if ($userId <= 0) {
+            return ['ok' => false, 'error' => 'Invalid user ID.'];
         }
 
         if (!dbConnected()) {
@@ -233,7 +241,7 @@ if (!function_exists('updateCustomer')) {
 
         try {
             $sql = "
-                UPDATE Customer
+                UPDATE User
                 SET
                     first_name = :first_name,
                     last_name = :last_name,
@@ -242,19 +250,19 @@ if (!function_exists('updateCustomer')) {
                     license_number = :license_number,
                     license_expiry = :license_expiry,
                     address = :address
-                WHERE customer_id = :customer_id
+                WHERE user_id = :user_id
             ";
 
             $stmt = db()->prepare($sql);
             $stmt->execute([
-                'customer_id' => $customerId,
+                'user_id' => $userId,
                 'first_name' => trim((string) ($payload['first_name'] ?? '')),
                 'last_name' => trim((string) ($payload['last_name'] ?? '')),
                 'email' => strtolower(trim((string) ($payload['email'] ?? ''))),
                 'phone' => trim((string) ($payload['phone'] ?? '')),
-                'license_number' => trim((string) ($payload['license_number'] ?? '')),
-                'license_expiry' => trim((string) ($payload['license_expiry'] ?? '')),
-                'address' => trim((string) ($payload['address'] ?? '')),
+                'license_number' => trim((string) ($payload['license_number'] ?? '')) ?: null,
+                'license_expiry' => trim((string) ($payload['license_expiry'] ?? '')) ?: null,
+                'address' => trim((string) ($payload['address'] ?? '')) ?: null,
             ]);
 
             return ['ok' => true];
@@ -279,17 +287,17 @@ if (!function_exists('getCustomerByEmail')) {
         try {
             $sql = "
                 SELECT
-                    c.customer_id,
-                    c.first_name,
-                    c.last_name,
-                    CONCAT(c.first_name, ' ', c.last_name) AS name,
-                    c.email,
-                    c.phone,
-                    c.license_number,
-                    c.license_expiry,
-                    c.address
-                FROM Customer c
-                WHERE c.email = :email
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    CONCAT(u.first_name, ' ', u.last_name) AS name,
+                    u.email,
+                    u.phone,
+                    u.license_number,
+                    u.license_expiry,
+                    u.address
+                FROM User u
+                WHERE u.email = :email
                 LIMIT 1
             ";
             $stmt = db()->prepare($sql);
@@ -323,17 +331,17 @@ if (!function_exists('getCustomerByName')) {
         try {
             $sql = "
                 SELECT
-                    c.customer_id,
-                    c.first_name,
-                    c.last_name,
-                    CONCAT(c.first_name, ' ', c.last_name) AS name,
-                    c.email,
-                    c.phone,
-                    c.license_number,
-                    c.license_expiry,
-                    c.address
-                FROM Customer c
-                WHERE LOWER(CONCAT(c.first_name, ' ', c.last_name)) = LOWER(:name)
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    CONCAT(u.first_name, ' ', u.last_name) AS name,
+                    u.email,
+                    u.phone,
+                    u.license_number,
+                    u.license_expiry,
+                    u.address
+                FROM User u
+                WHERE LOWER(CONCAT(u.first_name, ' ', u.last_name)) = LOWER(:name)
                 LIMIT 1
             ";
             $stmt = db()->prepare($sql);

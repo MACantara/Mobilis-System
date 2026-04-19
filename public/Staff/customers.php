@@ -43,7 +43,7 @@ if (!function_exists('customerJoinedLabel')) {
 
 $customerProfiles = [];
 foreach ($customers as $customer) {
-    $id = (int) ($customer['customer_id'] ?? 0);
+    $id = (int) ($customer['user_id'] ?? 0);
     if ($id <= 0) {
         continue;
     }
@@ -95,10 +95,10 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
                 <tbody>
                 <?php foreach ($customers as $customer): ?>
                     <?php
-                    $customerId = (int) ($customer['customer_id'] ?? 0);
-                    $isActive = $selected !== null && (int) ($selected['customer_id'] ?? 0) === $customerId;
+                    $customerId = (int) ($customer['user_id'] ?? 0);
+                    $isActive = $selected !== null && (int) ($selected['user_id'] ?? 0) === $customerId;
                     ?>
-                    <tr class="customer-row<?= $isActive ? ' is-active' : '' ?>" data-customer-id="<?= $customerId ?>">
+                    <tr class="customer-row<?= $isActive ? ' is-active' : '' ?>" data-user-id="<?= $customerId ?>">
                         <td>
                             <div class="customer-cell-main">
                                 <span class="customer-avatar"><?= htmlspecialchars(customerInitialsForPage((string) $customer['name'])) ?></span>
@@ -165,7 +165,7 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
 
             <div class="customer-profile-actions">
                 <a class="ghost-link button-like" id="profile-message-btn" href="mailto:<?= htmlspecialchars((string) ($selected['email'] ?? '')) ?>">Message</a>
-                <a class="ghost-link button-like" id="profile-edit-btn" href="customer-edit.php?id=<?= (int) ($selected['customer_id'] ?? 0) ?>">Edit</a>
+                <a class="ghost-link button-like" id="profile-edit-btn" href="customer-edit.php?id=<?= (int) ($selected['user_id'] ?? 0) ?>">Edit</a>
             </div>
         <?php else: ?>
             <p>No customer data available.</p>

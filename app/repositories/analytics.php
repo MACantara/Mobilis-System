@@ -208,17 +208,18 @@ if (!function_exists('getTopCustomersByRevenue')) {
     function getTopCustomersByRevenue(int $limit = 10): array
     {
         try {
-            $sql = "SELECT c.name, c.email, COUNT(r.rental_id) as bookings, SUM(r.total_amount) as total_revenue
-                    FROM Customer c
-                    JOIN Rental r ON c.customer_id = r.customer_id
-                    WHERE r.status != 'cancelled'
-                    GROUP BY c.customer_id
+            $sql = "SELECT CONCAT(u.first_name, ' ', u.last_name) as name, u.email, COUNT(r.rental_id) as bookings, SUM(i.total_amount) as total_revenue
+                    FROM User u
+                    JOIN Rental r ON r.user_id = u.user_id
+                    LEFT JOIN Invoice i ON i.rental_id = r.rental_id
+                    WHERE u.role = 'customer' AND r.status != 'cancelled'
+                    GROUP BY u.user_id, u.first_name, u.last_name, u.email
                     ORDER BY total_revenue DESC
                     LIMIT ?";
             $stmt = db()->prepare($sql);
             $stmt->execute([$limit]);
             $rows = $stmt->fetchAll();
-            
+
             return array_map(fn($row) => [
                 'name' => $row['name'] ?? 'Unknown',
                 'email' => $row['email'] ?? '',

@@ -6,7 +6,7 @@ requireAuth(['customer']);
 
 $user = currentUser();
 $customer = resolveCustomerForUser($user);
-$customerId = (int) ($customer['customer_id'] ?? 0);
+$customerId = (int) ($customer['user_id'] ?? 0);
 $accountLinked = $customerId > 0;
 
 $notice = (string) ($_GET['notice'] ?? '');

@@ -16,14 +16,14 @@ if (!function_exists('getPayments')) {
             $sql = "
                 SELECT
                     i.invoice_id,
-                    CONCAT(c.first_name, ' ', c.last_name) AS customer,
+                    CONCAT(u.first_name, ' ', u.last_name) AS customer,
                     CONCAT(v.brand, ' ', v.model) AS vehicle,
                     i.total_amount,
                     i.payment_status,
                     DATE(i.issued_at) AS issued_at
                 FROM Invoice i
                 INNER JOIN Rental r ON r.rental_id = i.rental_id
-                INNER JOIN Customer c ON c.customer_id = r.customer_id
+                INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 ORDER BY i.issued_at DESC
                 LIMIT :limit
@@ -58,9 +58,9 @@ if (!function_exists('getCustomerPayments')) {
                     DATE(i.issued_at) AS issued_at
                 FROM Invoice i
                 INNER JOIN Rental r ON r.rental_id = i.rental_id
-                INNER JOIN Customer c ON c.customer_id = r.customer_id
+                INNER JOIN User u ON u.user_id = r.user_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
-                WHERE c.email = :email
+                WHERE u.email = :email
                 ORDER BY i.issued_at DESC
                 LIMIT :limit
             ";
@@ -98,12 +98,12 @@ if (!function_exists('getCustomerPaymentsByCustomerId')) {
                 FROM Invoice i
                 INNER JOIN Rental r ON r.rental_id = i.rental_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
-                WHERE r.customer_id = :customer_id
+                WHERE r.user_id = :user_id
                 ORDER BY i.issued_at DESC
                 LIMIT :limit
             ";
             $stmt = db()->prepare($sql);
-            $stmt->bindValue(':customer_id', $customerId, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id', $customerId, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll();
@@ -142,13 +142,13 @@ if (!function_exists('getCustomerInvoiceById')) {
                 INNER JOIN Rental r ON r.rental_id = i.rental_id
                 INNER JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
                 WHERE i.invoice_id = :invoice_id
-                  AND r.customer_id = :customer_id
+                  AND r.user_id = :user_id
                 LIMIT 1
             ";
             $stmt = db()->prepare($sql);
             $stmt->execute([
                 'invoice_id' => $invoiceId,
-                'customer_id' => $customerId,
+                'user_id' => $customerId,
             ]);
             $row = $stmt->fetch();
             return $row ?: null;
@@ -181,12 +181,12 @@ if (!function_exists('markCustomerInvoicePaid')) {
                 INNER JOIN Rental r ON r.rental_id = i.rental_id
                 SET i.payment_status = 'paid'
                 WHERE i.invoice_id = :invoice_id
-                  AND r.customer_id = :customer_id
+                  AND r.user_id = :user_id
             ";
             $stmt = db()->prepare($sql);
             $stmt->execute([
                 'invoice_id' => $invoiceId,
-                'customer_id' => $customerId,
+                'user_id' => $customerId,
             ]);
 
             if ((int) $stmt->rowCount() <= 0) {
