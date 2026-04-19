@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../app/bootstrap.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 if (isAuthenticated()) {
     header('Location: /Staff/dashboard.php');
@@ -87,17 +87,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="checkbox" name="remember_me" value="1">
                         <span>Remember me</span>
                     </label>
-                    <a href="/Customer/forgot-password.php" class="text-link">Forgot password?</a>
+                    <a href="/forgot-password.php" class="text-link">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="primary-btn full">Sign in</button>
 
                 <div class="or-divider"><span>or</span></div>
 
-                <a class="ghost-btn" href="/Customer/login.php?notice=google">Continue with Google</a>
+                <a class="ghost-btn" href="/login.php?notice=google">Continue with Google</a>
             </form>
 
-            <p class="auth-footnote">Don't have an account? <a href="/Customer/register.php" class="text-link">Create an account</a></p>
+            <p class="auth-footnote">Don't have an account? <a href="/register.php" class="text-link">Create an account</a></p>
         </div>
     </section>
 </div>

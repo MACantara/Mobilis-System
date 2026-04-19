@@ -64,7 +64,7 @@ if (!function_exists('requireAuth')) {
         $user = currentUser();
 
         if ($user === null) {
-            header('Location: /Customer/login.php');
+            header('Location: /login.php');
             exit;
         }
 

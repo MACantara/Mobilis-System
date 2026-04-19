@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../app/bootstrap.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 $errors = [];
 $success = '';
@@ -83,8 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p>Default admin demo account: <strong>admin@mobilis.ph</strong></p>
         <div class="auth-helper-actions">
-            <a href="/Customer/login.php" class="primary-btn">Back to sign in</a>
-            <a href="/Customer/contact-admin.php" class="ghost-btn">Contact admin</a>
+            <a href="/login.php" class="primary-btn">Back to sign in</a>
+            <a href="/contact-admin.php" class="ghost-btn">Contact admin</a>
         </div>
     </section>
 </main>

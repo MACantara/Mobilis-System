@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../app/bootstrap.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 $errors = [];
 $success = '';
@@ -94,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p>Email: <strong>admin@mobilis.ph</strong><br>Support line: <strong>+63 917 000 0000</strong></p>
         <div class="auth-helper-actions">
-            <a href="/Customer/login.php" class="primary-btn">Back to sign in</a>
-            <a href="/Customer/forgot-password.php" class="ghost-btn">Forgot password</a>
+            <a href="/login.php" class="primary-btn">Back to sign in</a>
+            <a href="/forgot-password.php" class="ghost-btn">Forgot password</a>
         </div>
     </section>
 </main>

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../app/bootstrap.php';
+require_once __DIR__ . '/../app/bootstrap.php';
 
 $errors = [];
 $success = '';
@@ -97,8 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="auth-helper-actions">
-            <a href="/Customer/login.php" class="primary-btn">Go to sign in</a>
-            <a href="/Customer/contact-admin.php" class="ghost-btn">Talk to admin</a>
+            <a href="/login.php" class="primary-btn">Go to sign in</a>
+            <a href="/contact-admin.php" class="ghost-btn">Talk to admin</a>
         </div>
     </section>
 </main>

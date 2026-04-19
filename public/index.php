@@ -36,8 +36,8 @@ if (isAuthenticated()) {
         </div>
 
         <div class="landing-hero-actions">
-            <a href="/Customer/register.php" class="primary-btn">Get started</a>
-            <a href="/Customer/login.php" class="ghost-btn">I already have an account</a>
+            <a href="/register.php" class="primary-btn">Get started</a>
+            <a href="/login.php" class="ghost-btn">I already have an account</a>
         </div>
 
         <div class="landing-proof-grid">
@@ -116,8 +116,8 @@ if (isAuthenticated()) {
         <h3>Ready to book your next vehicle?</h3>
         <p>Create your account today and get access to real-time booking and payment updates.</p>
         <div class="landing-hero-actions">
-            <a href="/Customer/register.php" class="primary-btn">Create account</a>
-            <a href="/Customer/login.php" class="ghost-btn">Sign in</a>
+            <a href="/register.php" class="primary-btn">Create account</a>
+            <a href="/login.php" class="ghost-btn">Sign in</a>
         </div>
     </section>
 </main>
