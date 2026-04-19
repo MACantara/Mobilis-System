@@ -9,6 +9,8 @@ $customerEmail = $user['email'] ?? '';
 
 $customerBookings = getCustomerBookings($customerEmail, 50);
 $activeBookings = array_filter($customerBookings, fn($b) => in_array(($b['status'] ?? ''), ['active', 'confirmed']));
+$snapshot = getLiveTrackingSnapshot($user ?? [], 200, 5);
+$trackedVehicles = (array) ($snapshot['vehicles'] ?? []);
 
 if (!function_exists('vehicleEmoji')) {
     function vehicleEmoji(string $vehicleName): string
@@ -43,12 +45,18 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
             <div class="card-header">
                 <h4>Live fleet map</h4>
             </div>
-            <div class="map-embed-wrap">
-                <iframe
-                    title="Live fleet map"
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    src="https://www.google.com/maps?q=Metro+Manila,+Philippines&output=embed"></iframe>
+            <div
+                id="customer-live-map"
+                class="live-map-canvas"
+                data-tracking-map
+                data-tracking-endpoint="/api/tracking.php"
+                data-tracking-list-target="customer-tracked-vehicles"
+                data-tracking-status-target="customer-tracking-status"></div>
+            <p id="customer-tracking-status" class="muted tracking-status-note">
+                Simulated locations refresh every <?= (int) ($snapshot['step_seconds'] ?? 5) ?> seconds.
+            </p>
+            <div class="tracking-map-actions">
+                <button type="button" class="ghost-link button-like" data-tracking-refresh="customer-live-map">Refresh now</button>
             </div>
         </article>
 
@@ -56,17 +64,19 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking', ['role' => 'customer
             <div class="card-header">
                 <h4>My rented vehicles</h4>
             </div>
-            <ul class="list clean">
-                <?php foreach ($activeBookings as $booking): ?>
+            <ul id="customer-tracked-vehicles" class="list clean">
+                <?php foreach ($trackedVehicles as $vehicle): ?>
+                    <?php $status = strtolower((string) ($vehicle['status'] ?? 'confirmed')); ?>
                     <li>
                         <div class="status-item-left">
-                            <span class="status-emoji"><?= htmlspecialchars(vehicleEmoji((string) $booking['vehicle'])) ?></span>
+                            <span class="status-emoji"><?= htmlspecialchars(vehicleEmoji((string) $vehicle['name'])) ?></span>
                             <div>
-                            <strong><?= htmlspecialchars((string) $booking['vehicle']) ?></strong>
-                            <p>Until <?= htmlspecialchars(date('M j, Y', strtotime((string) $booking['return_date']))) ?></p>
+                            <strong><?= htmlspecialchars((string) $vehicle['name']) ?></strong>
+                            <p><?= htmlspecialchars((string) $vehicle['plate']) ?></p>
+                            <p class="muted tracking-coordinate"><?= number_format((float) $vehicle['lat'], 6) ?>, <?= number_format((float) $vehicle['lng'], 6) ?></p>
                             </div>
                         </div>
-                        <span class="pill confirmed">Active</span>
+                        <span class="pill <?= htmlspecialchars($status) ?>"><?= htmlspecialchars(ucfirst($status)) ?></span>
                     </li>
                 <?php endforeach; ?>
             </ul>

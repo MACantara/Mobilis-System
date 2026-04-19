@@ -620,6 +620,34 @@ input:focus {
   display: block;
 }
 
+.live-map-canvas {
+  width: 100%;
+  height: 420px;
+  border-radius: 12px;
+  border: 1px solid #d3e5de;
+  overflow: hidden;
+}
+
+.tracking-status-note {
+  margin-top: 10px;
+}
+
+.tracking-map-actions {
+  margin-top: 10px;
+}
+
+.tracking-coordinate {
+  font-variant-numeric: tabular-nums;
+}
+
+.leaflet-container {
+  font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+.leaflet-control-attribution {
+  font-size: 0.72rem;
+}
+
 .bookings-page-head {
   margin-top: 14px;
 }
@@ -2572,6 +2600,10 @@ td p {
 
   .vehicle-actions {
     flex-wrap: wrap;
+  }
+
+  .live-map-canvas {
+    height: 320px;
   }
 
   .bookings-footer-row {

@@ -197,3 +197,253 @@ function setupCustomerProfilePanel() {
 }
 
 setupCustomerProfilePanel();
+
+const leafletAssets = {
+  ready: false,
+  pending: null,
+};
+
+function loadStyleOnce(href, id) {
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+function loadScriptOnce(src, id) {
+  const existing = document.getElementById(id);
+  if (existing) {
+    if (window.L) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', () => reject(new Error('Failed to load map script')), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.id = id;
+    script.src = src;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Failed to load map script'));
+    document.body.appendChild(script);
+  });
+}
+
+async function ensureLeaflet() {
+  if (window.L) {
+    leafletAssets.ready = true;
+    return;
+  }
+
+  if (leafletAssets.pending) {
+    await leafletAssets.pending;
+    return;
+  }
+
+  leafletAssets.pending = (async () => {
+    loadStyleOnce('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'leaflet-css');
+    await loadScriptOnce('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', 'leaflet-js');
+    leafletAssets.ready = true;
+  })();
+
+  await leafletAssets.pending;
+}
+
+function trackingStatusClass(status) {
+  const value = String(status || 'available').trim().toLowerCase();
+  return value.replace(/\s+/g, '.');
+}
+
+function trackingStatusLabel(status) {
+  const value = String(status || 'available').trim().toLowerCase();
+  if (!value) return 'Unknown';
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function trackingMarkerColor(status) {
+  const value = String(status || 'available').toLowerCase();
+  if (value === 'rented' || value === 'confirmed' || value === 'active') return '#1e73be';
+  if (value === 'maintenance') return '#d48723';
+  if (value === 'cancelled') return '#bf3d3d';
+  return '#17966e';
+}
+
+function renderTrackingList(listEl, vehicles) {
+  if (!listEl) return;
+
+  listEl.innerHTML = '';
+
+  if (!Array.isArray(vehicles) || vehicles.length === 0) {
+    const empty = document.createElement('li');
+    empty.innerHTML = '<div><strong>No tracked vehicles</strong><p class="muted">No active GPS locations are available.</p></div><span class="pill pending">Idle</span>';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  vehicles.forEach((vehicle) => {
+    const li = document.createElement('li');
+
+    const details = document.createElement('div');
+
+    const name = document.createElement('strong');
+    name.textContent = vehicle.name || 'Unknown vehicle';
+
+    const plate = document.createElement('p');
+    plate.textContent = vehicle.plate || 'No plate';
+
+    const coords = document.createElement('p');
+    coords.className = 'muted tracking-coordinate';
+    const lat = Number(vehicle.lat || 0);
+    const lng = Number(vehicle.lng || 0);
+    coords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+    details.appendChild(name);
+    details.appendChild(plate);
+    details.appendChild(coords);
+
+    const badge = document.createElement('span');
+    const statusClass = trackingStatusClass(vehicle.status);
+    badge.className = 'pill ' + statusClass;
+    badge.textContent = trackingStatusLabel(vehicle.status);
+
+    li.appendChild(details);
+    li.appendChild(badge);
+    listEl.appendChild(li);
+  });
+}
+
+function updateTrackingMarkers(map, markerStore, vehicles) {
+  const seen = new Set();
+
+  vehicles.forEach((vehicle) => {
+    const id = String(vehicle.vehicle_id || vehicle.plate || vehicle.name || 'unknown');
+    seen.add(id);
+
+    const lat = Number(vehicle.lat);
+    const lng = Number(vehicle.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    const color = trackingMarkerColor(vehicle.status);
+    const popup = `<strong>${vehicle.name || 'Unknown vehicle'}</strong><br>${vehicle.plate || ''}<br>${trackingStatusLabel(vehicle.status)}<br>${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+    if (markerStore.has(id)) {
+      const marker = markerStore.get(id);
+      marker.setLatLng([lat, lng]);
+      marker.setStyle({ color, fillColor: color });
+      marker.bindPopup(popup);
+      return;
+    }
+
+    const marker = window.L.circleMarker([lat, lng], {
+      radius: 8,
+      color,
+      fillColor: color,
+      fillOpacity: 0.86,
+      weight: 2,
+    }).addTo(map);
+
+    marker.bindPopup(popup);
+    markerStore.set(id, marker);
+  });
+
+  markerStore.forEach((marker, id) => {
+    if (seen.has(id)) return;
+    map.removeLayer(marker);
+    markerStore.delete(id);
+  });
+}
+
+async function setupLiveTrackingMap(mapEl) {
+  await ensureLeaflet();
+
+  const endpoint = mapEl.dataset.trackingEndpoint || '/api/tracking.php';
+  const listTargetId = mapEl.dataset.trackingListTarget || '';
+  const statusTargetId = mapEl.dataset.trackingStatusTarget || '';
+  const listEl = listTargetId ? document.getElementById(listTargetId) : null;
+  const statusEl = statusTargetId ? document.getElementById(statusTargetId) : null;
+
+  const map = window.L.map(mapEl, { zoomControl: true });
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
+
+  map.setView([14.5995, 121.0223], 11);
+
+  const markerStore = new Map();
+  let hasAutoFitted = false;
+  let pollMs = 5000;
+  let timerId = 0;
+
+  async function refreshTracking() {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Tracking API failed (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const vehicles = Array.isArray(payload.vehicles) ? payload.vehicles : [];
+      const stepSeconds = Number(payload.step_seconds || 5);
+
+      if (Number.isFinite(stepSeconds) && stepSeconds > 0) {
+        pollMs = Math.max(2000, Math.floor(stepSeconds * 1000));
+      }
+
+      updateTrackingMarkers(map, markerStore, vehicles);
+      renderTrackingList(listEl, vehicles);
+
+      if (!hasAutoFitted && vehicles.length > 0) {
+        const bounds = window.L.latLngBounds(vehicles.map((vehicle) => [Number(vehicle.lat), Number(vehicle.lng)]));
+        map.fitBounds(bounds.pad(0.25), { maxZoom: 13 });
+        hasAutoFitted = true;
+      }
+
+      if (statusEl) {
+        const count = vehicles.length;
+        statusEl.textContent = count > 0
+          ? `${count} vehicle${count === 1 ? '' : 's'} updated at ${new Date().toLocaleTimeString()}`
+          : 'No tracked vehicles are currently available.';
+      }
+    } catch (error) {
+      if (statusEl) {
+        statusEl.textContent = `Tracking temporarily unavailable: ${error.message}`;
+      }
+    }
+
+    timerId = window.setTimeout(refreshTracking, pollMs);
+  }
+
+  const refreshButtons = document.querySelectorAll(`[data-tracking-refresh="${mapEl.id}"]`);
+  refreshButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (timerId) {
+        window.clearTimeout(timerId);
+      }
+      refreshTracking();
+    });
+  });
+
+  window.setTimeout(() => map.invalidateSize(), 120);
+  refreshTracking();
+}
+
+async function initializeLiveTracking() {
+  const maps = document.querySelectorAll('[data-tracking-map]');
+  if (maps.length === 0) return;
+
+  for (const mapEl of maps) {
+    setupLiveTrackingMap(mapEl);
+  }
+}
+
+initializeLiveTracking();
