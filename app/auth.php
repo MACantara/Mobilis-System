@@ -69,7 +69,14 @@ if (!function_exists('requireAuth')) {
         }
 
         if ($roles !== [] && !in_array($user['role'], $roles, true)) {
-            header('Location: /errors/403.php');
+            $homePath = currentUserHomePath();
+            $currentPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+
+            if ($homePath !== '' && $homePath !== $currentPath) {
+                header('Location: ' . $homePath);
+            } else {
+                header('Location: /errors/403.php');
+            }
             exit;
         }
     }
