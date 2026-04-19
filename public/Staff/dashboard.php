@@ -143,7 +143,6 @@ viewBegin('app', appLayoutData('Dashboard', 'dashboard'));
     <article class="card">
         <div class="card-header">
             <h4>Live fleet map</h4>
-            <a href="tracking.php" class="ghost-link">Full map</a>
         </div>
         <div
             id="dashboard-live-map"

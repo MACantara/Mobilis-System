@@ -18,7 +18,6 @@ viewBegin('app', appLayoutData('Live tracking', 'tracking'));
     <article class="card">
         <div class="card-header">
             <h4>Live fleet map</h4>
-            <a href="vehicles.php" class="ghost-link">Full map</a>
         </div>
         <div
             id="staff-live-map"
