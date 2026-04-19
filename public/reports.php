@@ -8,6 +8,10 @@ $maintenance = getMaintenanceBacklog();
 
 renderPageTop('Reports', 'reports');
 ?>
+<section class="page-content-head">
+    <h3>All reports</h3>
+</section>
+
 <section class="content-grid split-grid">
     <article class="card">
         <div class="card-header">

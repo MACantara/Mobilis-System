@@ -66,10 +66,14 @@ renderPageTop('Customers', 'customers', [
 <?php if ($noticeMessage !== ''): ?>
     <div class="alert-success customers-alert"><?= htmlspecialchars($noticeMessage) ?></div>
 <?php endif; ?>
+<section class="page-content-head">
+    <h3>All customers</h3>
+</section>
+
 <section class="content-grid customers-grid">
     <article class="card customers-table-card">
         <div class="card-header customers-table-head">
-            <h3>All customers</h3>
+            <p class="customers-table-head-title">Customer directory</p>
             <div class="customers-toolbar">
                 <input type="search" placeholder="Search customers..." aria-label="Search customers" data-customer-search>
                 <a class="ghost-link button-like" href="customers-export.php">Export</a>

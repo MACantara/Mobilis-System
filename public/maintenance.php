@@ -8,6 +8,10 @@ $maintenance = getMaintenanceBacklog();
 
 renderPageTop('Maintenance', 'maintenance');
 ?>
+<section class="page-content-head">
+    <h3>All maintenance jobs</h3>
+</section>
+
 <section class="card">
     <div class="card-header">
         <h3>Service queue</h3>

@@ -8,6 +8,10 @@ $payments = getPayments(25);
 
 renderPageTop('Payments', 'payments');
 ?>
+<section class="page-content-head">
+    <h3>All payments</h3>
+</section>
+
 <section class="card">
     <div class="card-header">
         <h3>Payment ledger</h3>

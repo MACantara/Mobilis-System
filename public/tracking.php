@@ -8,6 +8,10 @@ $vehicles = getVehicles(12);
 
 renderPageTop('Live tracking', 'tracking');
 ?>
+<section class="page-content-head">
+    <h3>Live tracking overview</h3>
+</section>
+
 <section class="content-grid split-grid">
     <article class="card">
         <div class="card-header">

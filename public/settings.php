@@ -8,10 +8,14 @@ $user = currentUser();
 
 renderPageTop('Settings', 'settings');
 ?>
+<section class="page-content-head">
+    <h3>System settings</h3>
+</section>
+
 <section class="content-grid split-grid">
     <article class="card">
         <div class="card-header">
-            <h3>System settings</h3>
+            <h3>Configuration overview</h3>
         </div>
         <div class="mini-stats">
             <div>

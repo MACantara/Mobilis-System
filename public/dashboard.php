@@ -63,6 +63,10 @@ if (!function_exists('formatBookingDateRange')) {
 
 renderPageTop('Dashboard', 'dashboard');
 ?>
+<section class="page-content-head">
+    <h3>Overview</h3>
+</section>
+
 <section class="content-grid metric-grid">
     <article class="card metric-card">
         <p>Total fleet</p>

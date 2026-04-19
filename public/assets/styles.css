@@ -290,6 +290,15 @@ input:focus {
   margin-top: 14px;
 }
 
+.page-content-head {
+  margin: 14px 0;
+}
+
+.page-content-head h3 {
+  margin: 0;
+  font-size: 2rem;
+}
+
 .metric-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1106,6 +1115,13 @@ td p {
 
 .customers-table-head {
   margin-bottom: 14px;
+}
+
+.customers-table-head-title {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .customers-toolbar {
