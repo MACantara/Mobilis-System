@@ -660,6 +660,80 @@ input:focus {
   pointer-events: none;
 }
 
+.vehicles-control-card {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.vehicles-toolbar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.vehicles-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vehicles-toolbar input[type="search"] {
+  min-width: 220px;
+}
+
+.vehicles-filters {
+  display: grid;
+  gap: 8px;
+}
+
+.vehicles-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vehicles-chip {
+  border: 1px solid #d6e2dc;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #607073;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 7px 12px;
+}
+
+.vehicles-chip.active {
+  border-color: #57b898;
+  background: #dff5eb;
+  color: #17654b;
+}
+
+.vehicle-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vehicle-title-wrap .status-emoji {
+  width: 34px;
+  height: 34px;
+  font-size: 1.05rem;
+}
+
+.primary-btn.warning {
+  background: #f4fbf7;
+  color: #926012;
+  border: 1px solid #f0b552;
+}
+
+.primary-btn.warning:hover {
+  background: #fff4df;
+}
+
 .map-stage p {
   position: absolute;
   left: 50%;
@@ -969,6 +1043,10 @@ td p {
 .meta-grid strong {
   display: block;
   margin-top: 4px;
+}
+
+.vehicle-card h3 {
+  font-size: 1.7rem;
 }
 
 .actions {
@@ -1341,6 +1419,20 @@ td p {
   .bookings-toolbar input[type="search"] {
     min-width: 0;
     flex: 1;
+  }
+
+  .vehicles-toolbar {
+    width: 100%;
+  }
+
+  .vehicles-toolbar input[type="search"] {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .vehicles-toolbar-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .bookings-footer-row {
