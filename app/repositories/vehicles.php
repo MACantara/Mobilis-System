@@ -322,3 +322,84 @@ if (!function_exists('getAvailableVehicles')) {
         }
     }
 }
+
+if (!function_exists('getMaintenanceVehicleOptions')) {
+    function getMaintenanceVehicleOptions(): array
+    {
+        if (!dbConnected()) {
+            return [
+                ['vehicle_id' => 1, 'name' => 'Toyota Fortuner', 'plate' => 'ABC-1234'],
+                ['vehicle_id' => 2, 'name' => 'Honda Civic', 'plate' => 'XYZ-5678'],
+            ];
+        }
+
+        try {
+            $sql = "
+                SELECT
+                    v.vehicle_id,
+                    CONCAT(v.brand, ' ', v.model) AS name,
+                    REPLACE(v.plate_number, ' ', '-') AS plate
+                FROM Vehicle v
+                ORDER BY v.brand, v.model
+            ";
+            return db()->query($sql)->fetchAll();
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('createMaintenanceWorkOrder')) {
+    function createMaintenanceWorkOrder(array $payload): array
+    {
+        if (!dbConnected()) {
+            return ['ok' => false, 'error' => 'Database is not connected.'];
+        }
+
+        $vehicleId = (int) ($payload['vehicle_id'] ?? 0);
+        $serviceDate = trim((string) ($payload['service_date'] ?? ''));
+        $serviceType = trim((string) ($payload['service_type'] ?? ''));
+        $odometerKm = (int) ($payload['odometer_km'] ?? 0);
+        $performedBy = trim((string) ($payload['performed_by'] ?? ''));
+        $cost = (float) ($payload['cost'] ?? 0);
+        $remarks = trim((string) ($payload['remarks'] ?? ''));
+
+        if ($vehicleId <= 0 || $serviceDate === '' || $serviceType === '' || $odometerKm <= 0) {
+            return ['ok' => false, 'error' => 'Vehicle, service date, service type, and odometer are required.'];
+        }
+
+        try {
+            $pdo = db();
+            $pdo->beginTransaction();
+
+            $insert = $pdo->prepare(
+                'INSERT INTO MaintenanceLog (vehicle_id, service_date, service_type, cost, performed_by, odometer_km, remarks)
+                 VALUES (:vehicle_id, :service_date, :service_type, :cost, :performed_by, :odometer_km, :remarks)'
+            );
+
+            $insert->execute([
+                'vehicle_id' => $vehicleId,
+                'service_date' => $serviceDate,
+                'service_type' => $serviceType,
+                'cost' => max(0, $cost),
+                'performed_by' => $performedBy !== '' ? $performedBy : null,
+                'odometer_km' => $odometerKm,
+                'remarks' => $remarks !== '' ? $remarks : null,
+            ]);
+
+            $updateVehicle = $pdo->prepare("UPDATE Vehicle SET status = 'maintenance', mileage_km = GREATEST(mileage_km, :odometer_km) WHERE vehicle_id = :vehicle_id");
+            $updateVehicle->execute([
+                'vehicle_id' => $vehicleId,
+                'odometer_km' => $odometerKm,
+            ]);
+
+            $pdo->commit();
+            return ['ok' => true, 'log_id' => (int) $pdo->lastInsertId()];
+        } catch (Throwable $e) {
+            if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            return ['ok' => false, 'error' => 'Could not create work order right now.'];
+        }
+    }
+}
