@@ -4,29 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../app/bootstrap.php';
 
 if (isAuthenticated()) {
-    header('Location: dashboard.php');
+    header('Location: /Staff/dashboard.php');
     exit;
-}
-
-$error = '';
-$info = '';
-
-if (isset($_GET['notice'])) {
-    if ($_GET['notice'] === 'google') {
-        $info = 'Google sign-in is not enabled in this prototype yet. Use demo credentials below.';
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = (string) ($_POST['email'] ?? '');
-    $password = (string) ($_POST['password'] ?? '');
-
-    if (attemptLogin($email, $password)) {
-        header('Location: dashboard.php');
-        exit;
-    }
-
-    $error = 'Invalid credentials. Try admin@mobilis.ph / admin123';
 }
 ?>
 <!doctype html>
@@ -34,72 +13,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobilis Prototype Login</title>
+    <title>Mobilis | Smarter Vehicle Rental</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="/assets/styles.css">
 </head>
-<body class="login-body">
-<div class="login-shell">
-    <section class="login-brand-panel">
+<body class="landing-body">
+<main class="landing-shell">
+    <section class="landing-hero">
         <div class="brand hero-brand">
             <span class="brand-icon">🚗</span>
             <div>
                 <h1>Mobilis</h1>
-                <p>Vehicle Rental</p>
+                <p>Vehicle Rental & Fleet Management</p>
             </div>
         </div>
-        <div class="hero-copy">
-            <h2>Rent a vehicle and manage a fleet, all from one place</h2>
-            <p>Track vehicles in real time, handle bookings, monitor maintenance, and grow your rental business with confidence.</p>
+
+        <div class="landing-hero-copy">
+            <h2>Book faster, travel smarter, and stay in control of every ride.</h2>
+            <p>Mobilis helps customers reserve trusted vehicles, monitor booking status in real time, and get transparent billing from pickup to return.</p>
         </div>
-        <div class="hero-kpis">
-            <div><strong>48</strong><span>Vehicles tracked</span></div>
-            <div><strong>P28k</strong><span>Revenue today</span></div>
-            <div><strong>64%</strong><span>Utilization</span></div>
+
+        <div class="landing-hero-actions">
+            <a href="/Customer/register.php" class="primary-btn">Get started</a>
+            <a href="/Customer/login.php" class="ghost-btn">I already have an account</a>
+        </div>
+
+        <div class="landing-proof-grid">
+            <article>
+                <strong>48+</strong>
+                <span>Vehicles managed daily</span>
+            </article>
+            <article>
+                <strong>31</strong>
+                <span>Active rentals in progress</span>
+            </article>
+            <article>
+                <strong>99%</strong>
+                <span>On-time booking updates</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="landing-section">
+        <div class="landing-section-head">
+            <h3>Why customers choose Mobilis</h3>
+            <p>Everything you need before, during, and after a rental.</p>
+        </div>
+        <div class="landing-feature-grid">
+            <article class="card landing-feature-card">
+                <h4>Instant booking visibility</h4>
+                <p>Track confirmation, payment, and schedule updates with clear status indicators.</p>
+            </article>
+            <article class="card landing-feature-card">
+                <h4>Reliable vehicle options</h4>
+                <p>Choose from sedans, SUVs, vans, and pickups with transparent rates and availability.</p>
+            </article>
+            <article class="card landing-feature-card">
+                <h4>Transparent billing flow</h4>
+                <p>See charges, invoices, and payment status in one place with no hidden surprises.</p>
+            </article>
         </div>
     </section>
 
-    <section class="login-form-panel">
-        <div class="form-wrap">
-            <h3>Welcome back</h3>
-            <p>Sign in to your Mobilis account</p>
+    <section class="landing-section">
+        <div class="landing-section-head">
+            <h3>Meet Team Mobilis</h3>
+            <p>The people building your smarter rental experience.</p>
+        </div>
 
-            <?php if ($info !== ''): ?>
-                <div class="alert-info"><?= htmlspecialchars($info) ?></div>
-            <?php endif; ?>
-
-            <?php if ($error !== ''): ?>
-                <div class="alert-error"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
-
-            <form method="post" class="login-form">
-                <label>Email address
-                    <input type="email" name="email" placeholder="you@mobilis.ph" required>
-                </label>
-                <label>Password
-                    <input type="password" name="password" placeholder="Enter password" required>
-                </label>
-
-                <div class="form-inline-row">
-                    <label class="checkbox-line">
-                        <input type="checkbox" name="remember_me" value="1">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="forgot-password.php" class="text-link">Forgot password?</a>
-                </div>
-
-                <button type="submit" class="primary-btn full">Sign in</button>
-
-                <div class="or-divider"><span>or</span></div>
-
-                <a class="ghost-btn" href="index.php?notice=google">Continue with Google</a>
-            </form>
-
-            <p class="auth-footnote">Don't have an account? <a href="contact-admin.php" class="text-link">Contact your admin</a></p>
+        <div class="team-grid">
+            <article class="team-card">
+                <img src="/assets/images/Team-Mobilis/DAWINAN.png" alt="Anton Sebastian C. Dawinan">
+                <h4>DAWINAN, ANTON SEBASTIAN C.</h4>
+                <p>Web/PHP</p>
+            </article>
+            <article class="team-card">
+                <img src="/assets/images/Team-Mobilis/MANGAO.png" alt="Alexander John M. Mangao">
+                <h4>MANGAO, ALEXANDER JOHN M.</h4>
+                <p>Frontend/UI</p>
+            </article>
+            <article class="team-card">
+                <img src="/assets/images/Team-Mobilis/SADICON.png" alt="Jhane Rose U. Sadicon">
+                <h4>SADICON, JHANE ROSE U.</h4>
+                <p>Project Manager/QA Tester</p>
+            </article>
+            <article class="team-card">
+                <img src="/assets/images/Team-Mobilis/SY.png" alt="Kenneth A. Sy">
+                <h4>SY, KENNETH A.</h4>
+                <p>Backend/Python</p>
+            </article>
+            <article class="team-card">
+                <img src="/assets/images/Team-Mobilis/TENORIA.png" alt="Johan Jaiser Tenoria">
+                <h4>TENORIA, JOHAN JAISER</h4>
+                <p>Database Lead</p>
+            </article>
         </div>
     </section>
-</div>
+
+    <section class="landing-cta card">
+        <h3>Ready to book your next vehicle?</h3>
+        <p>Create your account today and get access to real-time booking and payment updates.</p>
+        <div class="landing-hero-actions">
+            <a href="/Customer/register.php" class="primary-btn">Create account</a>
+            <a href="/Customer/login.php" class="ghost-btn">Sign in</a>
+        </div>
+    </section>
+</main>
 </body>
 </html>

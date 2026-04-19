@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 $errors = [];
 $success = '';
@@ -52,13 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
 <main class="auth-helper-wrap">
     <section class="auth-helper-card">
-        <h1>Contact your admin</h1>
+        <h2>Contact your admin</h2>
         <p>For account creation, role updates, billing questions, or password support, send a message below.</p>
+        <h3>Submit a support message</h3>
 
         <?php if ($success !== ''): ?>
             <div class="alert-success"><?= htmlspecialchars($success) ?></div>
@@ -93,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p>Email: <strong>admin@mobilis.ph</strong><br>Support line: <strong>+63 917 000 0000</strong></p>
         <div class="auth-helper-actions">
-            <a href="index.php" class="primary-btn">Back to sign in</a>
-            <a href="forgot-password.php" class="ghost-btn">Forgot password</a>
+            <a href="/Customer/login.php" class="primary-btn">Back to sign in</a>
+            <a href="/Customer/forgot-password.php" class="ghost-btn">Forgot password</a>
         </div>
     </section>
 </main>

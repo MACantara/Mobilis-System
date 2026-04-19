@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 
 $errors = [];
 $success = '';
@@ -47,13 +47,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
 <main class="auth-helper-wrap">
     <section class="auth-helper-card">
-        <h1>Password assistance</h1>
+        <h2>Password assistance</h2>
         <p>Submit a password reset request and it will be stored for the admin team to verify and process.</p>
+        <h3>Submit reset details</h3>
 
         <?php if ($success !== ''): ?>
             <div class="alert-success"><?= htmlspecialchars($success) ?></div>
@@ -82,8 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p>Default admin demo account: <strong>admin@mobilis.ph</strong></p>
         <div class="auth-helper-actions">
-            <a href="index.php" class="primary-btn">Back to sign in</a>
-            <a href="contact-admin.php" class="ghost-btn">Contact admin</a>
+            <a href="/Customer/login.php" class="primary-btn">Back to sign in</a>
+            <a href="/Customer/contact-admin.php" class="ghost-btn">Contact admin</a>
         </div>
     </section>
 </main>

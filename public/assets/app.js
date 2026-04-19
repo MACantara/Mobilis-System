@@ -7,7 +7,7 @@ async function refreshInsights() {
   insightsOutput.textContent = 'Running PHP + Python analysis...';
 
   try {
-    const response = await fetch('api/dashboard.php', {
+    const response = await fetch('/api/dashboard.php', {
       method: 'GET',
       headers: { Accept: 'application/json' },
     });
@@ -154,8 +154,8 @@ function setupCustomerProfilePanel() {
     const email = String(customer.email || '').trim();
     const name = String(customer.name || '').trim();
     profileMessageBtn.href = 'mailto:' + email + '?subject=' + encodeURIComponent('Mobilis customer support: ' + name);
-    profileEditBtn.href = 'customer-edit.php?id=' + encodeURIComponent(String(customerId));
-    profileBookingBtn.href = 'booking-create.php?customer_id=' + encodeURIComponent(String(customerId));
+    profileEditBtn.href = '/Staff/customer-edit.php?id=' + encodeURIComponent(String(customerId));
+    profileBookingBtn.href = '/Staff/booking-create.php?customer_id=' + encodeURIComponent(String(customerId));
 
     recentBookingsList.innerHTML = '';
     const recent = Array.isArray(customer.recent_bookings) ? customer.recent_bookings : [];

@@ -8,31 +8,31 @@ if (!function_exists('navSections')) {
             [
                 'section' => 'Overview',
                 'items' => [
-                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => 'dashboard.php', 'icon' => '📊'],
-                    ['key' => 'bookings', 'label' => 'Bookings', 'href' => 'bookings.php', 'icon' => '🗓', 'badge' => '12', 'badge_class' => 'ok'],
+                    ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/Staff/dashboard.php', 'icon' => '📊'],
+                    ['key' => 'bookings', 'label' => 'Bookings', 'href' => '/Staff/bookings.php', 'icon' => '🗓', 'badge' => '12', 'badge_class' => 'ok'],
                 ],
             ],
             [
                 'section' => 'Fleet',
                 'items' => [
-                    ['key' => 'vehicles', 'label' => 'Vehicles', 'href' => 'vehicles.php', 'icon' => '🚙'],
-                    ['key' => 'tracking', 'label' => 'Live tracking', 'href' => 'tracking.php', 'icon' => '📍'],
-                    ['key' => 'maintenance', 'label' => 'Maintenance', 'href' => 'maintenance.php', 'icon' => '🔧', 'badge' => '3', 'badge_class' => 'warn'],
+                    ['key' => 'vehicles', 'label' => 'Vehicles', 'href' => '/Staff/vehicles.php', 'icon' => '🚙'],
+                    ['key' => 'tracking', 'label' => 'Live tracking', 'href' => '/Staff/tracking.php', 'icon' => '📍'],
+                    ['key' => 'maintenance', 'label' => 'Maintenance', 'href' => '/Staff/maintenance.php', 'icon' => '🔧', 'badge' => '3', 'badge_class' => 'warn'],
                 ],
             ],
             [
                 'section' => 'Business',
                 'items' => [
-                    ['key' => 'customers', 'label' => 'Customers', 'href' => 'customers.php', 'icon' => '👥'],
-                    ['key' => 'payments', 'label' => 'Payments', 'href' => 'payments.php', 'icon' => '💳'],
-                    ['key' => 'reports', 'label' => 'Reports', 'href' => 'reports.php', 'icon' => '📈'],
+                    ['key' => 'customers', 'label' => 'Customers', 'href' => '/Staff/customers.php', 'icon' => '👥'],
+                    ['key' => 'payments', 'label' => 'Payments', 'href' => '/Staff/payments.php', 'icon' => '💳'],
+                    ['key' => 'reports', 'label' => 'Reports', 'href' => '/Staff/reports.php', 'icon' => '📈'],
                 ],
             ],
             [
                 'section' => 'Admin',
                 'items' => [
-                    ['key' => 'support', 'label' => 'Support inbox', 'href' => 'support-requests.php', 'icon' => '✉'],
-                    ['key' => 'settings', 'label' => 'Settings', 'href' => 'settings.php', 'icon' => '⚙'],
+                    ['key' => 'support', 'label' => 'Support inbox', 'href' => '/Admin/support-requests.php', 'icon' => '✉'],
+                    ['key' => 'settings', 'label' => 'Settings', 'href' => '/Admin/settings.php', 'icon' => '⚙'],
                 ],
             ],
         ];
@@ -63,7 +63,7 @@ if (!function_exists('renderPageTop')) {
         echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
         echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
         echo '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">';
-        echo '<link rel="stylesheet" href="assets/styles.css">';
+        echo '<link rel="stylesheet" href="/assets/styles.css">';
         echo '</head><body>';
         echo '<div class="app-shell">';
         echo '<aside class="sidebar">';
@@ -93,7 +93,7 @@ if (!function_exists('renderPageTop')) {
         echo '<p class="sidebar-user-label">Signed in as</p>';
         echo '<p class="sidebar-user-role">' . htmlspecialchars((string) ($user['role'] ?? 'guest')) . '</p>';
         echo '</div>';
-        echo '<a class="sidebar-logout-btn" href="logout.php">Sign out</a>';
+        echo '<a class="sidebar-logout-btn" href="/logout.php">Sign out</a>';
         echo '</div>';
         echo '</aside>';
 
@@ -117,7 +117,7 @@ if (!function_exists('renderPageBottom')) {
     function renderPageBottom(): void
     {
         echo '</main></div>';
-        echo '<script src="assets/app.js"></script>';
+        echo '<script src="/assets/app.js"></script>';
         echo '</body></html>';
     }
 }

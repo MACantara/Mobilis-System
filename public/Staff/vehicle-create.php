@@ -1,32 +1,19 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['admin', 'staff']);
 
-$vehicleId = (int) ($_GET['id'] ?? 0);
-$vehicle = getVehicleById($vehicleId);
 $categories = getVehicleCategories();
 $errors = [];
-
-if ($vehicle === null) {
-    renderPageTop('Edit vehicle', 'vehicles', [
-        'show_search' => false,
-        'show_primary_cta' => false,
-    ]);
-    echo '<section class="card customer-form-card"><h3>Vehicle not found</h3><p class="muted">The selected vehicle record does not exist.</p><p><a class="ghost-link" href="vehicles.php">Back to vehicles</a></p></section>';
-    renderPageBottom();
-    exit;
-}
-
 $form = [
-    'name' => (string) ($vehicle['name'] ?? ''),
-    'category_id' => (string) ((int) ($vehicle['category_id'] ?? 0)),
-    'plate_number' => (string) ($vehicle['plate'] ?? ''),
-    'year' => (string) ($vehicle['year'] ?? ''),
-    'color' => (string) ($vehicle['color'] ?? ''),
-    'mileage_km' => (string) ((int) ($vehicle['mileage_km'] ?? 0)),
-    'status' => (string) ($vehicle['status'] ?? 'available'),
+    'name' => '',
+    'category_id' => '',
+    'plate_number' => '',
+    'year' => '',
+    'color' => '',
+    'mileage_km' => '0',
+    'status' => 'available',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -48,23 +35,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors === []) {
-        $result = updateVehicleRecord($vehicleId, $form);
+        $result = createVehicleRecord($form);
         if (($result['ok'] ?? false) === true) {
-            header('Location: vehicles.php?notice=vehicle_updated');
+            header('Location: vehicles.php?notice=vehicle_created');
             exit;
         }
-        $errors[] = (string) ($result['error'] ?? 'Unable to update vehicle.');
+        $errors[] = (string) ($result['error'] ?? 'Unable to add vehicle.');
     }
 }
 
-renderPageTop('Edit vehicle', 'vehicles', [
+renderPageTop('Add vehicle', 'vehicles', [
     'show_search' => false,
     'show_primary_cta' => false,
 ]);
 ?>
 <section class="card customer-form-card">
     <div class="card-header">
-        <h3>Edit vehicle</h3>
+        <h3>New vehicle</h3>
         <a class="ghost-link" href="vehicles.php">Back</a>
     </div>
 
@@ -78,7 +65,7 @@ renderPageTop('Edit vehicle', 'vehicles', [
 
     <form method="post" class="customer-form-grid">
         <label class="full">Vehicle name (Brand Model)
-            <input type="text" name="name" value="<?= htmlspecialchars($form['name']) ?>" required>
+            <input type="text" name="name" value="<?= htmlspecialchars($form['name']) ?>" placeholder="Toyota Fortuner" required>
         </label>
 
         <label>Category
@@ -94,7 +81,7 @@ renderPageTop('Edit vehicle', 'vehicles', [
         </label>
 
         <label>Plate number
-            <input type="text" name="plate_number" value="<?= htmlspecialchars($form['plate_number']) ?>" required>
+            <input type="text" name="plate_number" value="<?= htmlspecialchars($form['plate_number']) ?>" placeholder="ABC 1234" required>
         </label>
 
         <label>Year
@@ -113,7 +100,7 @@ renderPageTop('Edit vehicle', 'vehicles', [
             <select name="status" required>
                 <?php $statusOptions = ['available', 'rented', 'maintenance']; ?>
                 <?php foreach ($statusOptions as $option): ?>
-                    <option value="<?= $option ?>" <?= strtolower($form['status']) === $option ? 'selected' : '' ?>>
+                    <option value="<?= $option ?>" <?= $form['status'] === $option ? 'selected' : '' ?>>
                         <?= htmlspecialchars(ucfirst($option)) ?>
                     </option>
                 <?php endforeach; ?>
@@ -122,7 +109,7 @@ renderPageTop('Edit vehicle', 'vehicles', [
 
         <div class="customer-form-actions full">
             <a class="ghost-link button-like" href="vehicles.php">Cancel</a>
-            <button type="submit" class="primary-btn">Save changes</button>
+            <button type="submit" class="primary-btn">Create vehicle</button>
         </div>
     </form>
 </section>
