@@ -198,6 +198,338 @@ function setupCustomerProfilePanel() {
 
 setupCustomerProfilePanel();
 
+function hasSeriesData(values) {
+  if (!Array.isArray(values) || values.length === 0) return false;
+  return values.some((value) => Number(value || 0) > 0);
+}
+
+function showChartFallback(canvas, message) {
+  if (!canvas) return;
+
+  const card = canvas.closest('.reports-chart-card');
+  canvas.remove();
+
+  if (!card) return;
+
+  const fallback = document.createElement('p');
+  fallback.className = 'muted reports-chart-empty';
+  fallback.textContent = message;
+  card.appendChild(fallback);
+}
+
+function initializeReportsCharts() {
+  const dataNode = document.getElementById('reports-chart-data');
+  if (!dataNode) return;
+
+  if (typeof window.Chart !== 'function') {
+    document.querySelectorAll('.reports-chart-card canvas').forEach((canvas) => {
+      showChartFallback(canvas, 'Charts are unavailable right now.');
+    });
+    return;
+  }
+
+  let payload = {};
+  try {
+    payload = JSON.parse(dataNode.textContent || '{}');
+  } catch (error) {
+    payload = {};
+  }
+
+  const palette = {
+    green: '#16986d',
+    blue: '#2878d8',
+    amber: '#d78a24',
+    violet: '#7b5acc',
+    red: '#cc5a5a',
+    slate: '#4d5d63',
+    teal: '#1f9f95',
+  };
+
+  const numberFormat = new Intl.NumberFormat('en-PH', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+  const moneyFormat = new Intl.NumberFormat('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          boxWidth: 10,
+          boxHeight: 10,
+          usePointStyle: true,
+          font: { family: 'Manrope, Segoe UI, sans-serif' },
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: '#5f6f71', maxRotation: 0, autoSkip: true },
+        grid: { color: 'rgba(209, 222, 216, 0.55)' },
+      },
+      y: {
+        ticks: { color: '#5f6f71' },
+        grid: { color: 'rgba(209, 222, 216, 0.55)' },
+      },
+    },
+  };
+
+  const revenueCanvas = document.getElementById('reports-revenue-chart');
+  const revenueLabels = payload?.revenueTrend?.labels || [];
+  const revenueValues = payload?.revenueTrend?.values || [];
+
+  if (revenueCanvas && hasSeriesData(revenueValues)) {
+    new window.Chart(revenueCanvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: revenueLabels,
+        datasets: [{
+          label: 'Revenue',
+          data: revenueValues,
+          borderColor: palette.green,
+          backgroundColor: 'rgba(22, 152, 109, 0.16)',
+          fill: true,
+          pointRadius: 2.4,
+          pointHoverRadius: 4,
+          tension: 0.34,
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          ...chartDefaults.plugins,
+          tooltip: {
+            callbacks: {
+              label(context) {
+                return ' P' + moneyFormat.format(context.parsed.y || 0);
+              },
+            },
+          },
+        },
+        scales: {
+          ...chartDefaults.scales,
+          y: {
+            ...chartDefaults.scales.y,
+            ticks: {
+              color: '#5f6f71',
+              callback(value) {
+                return 'P' + numberFormat.format(Number(value || 0));
+              },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(revenueCanvas, 'No revenue trend data available.');
+  }
+
+  const bookingsCanvas = document.getElementById('reports-bookings-chart');
+  const bookingLabels = payload?.bookingTrend?.labels || [];
+  const bookingCounts = payload?.bookingTrend?.counts || [];
+
+  if (bookingsCanvas && hasSeriesData(bookingCounts)) {
+    new window.Chart(bookingsCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: bookingLabels,
+        datasets: [{
+          label: 'Bookings',
+          data: bookingCounts,
+          borderRadius: 8,
+          borderSkipped: false,
+          backgroundColor: 'rgba(40, 120, 216, 0.8)',
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        scales: {
+          ...chartDefaults.scales,
+          y: {
+            ...chartDefaults.scales.y,
+            ticks: {
+              stepSize: 1,
+              color: '#5f6f71',
+              callback(value) {
+                return numberFormat.format(Number(value || 0));
+              },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(bookingsCanvas, 'No booking trend data available.');
+  }
+
+  const paymentCanvas = document.getElementById('reports-payment-chart');
+  const paymentLabels = payload?.paymentStatus?.labels || [];
+  const paymentCounts = payload?.paymentStatus?.counts || [];
+
+  if (paymentCanvas && hasSeriesData(paymentCounts)) {
+    new window.Chart(paymentCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: paymentLabels,
+        datasets: [{
+          data: paymentCounts,
+          backgroundColor: [palette.green, palette.amber, palette.blue, palette.slate],
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              usePointStyle: true,
+              font: { family: 'Manrope, Segoe UI, sans-serif' },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(paymentCanvas, 'No payment status data available.');
+  }
+
+  const bookingStatusCanvas = document.getElementById('reports-booking-status-chart');
+  const bookingStatusLabels = payload?.bookingStatus?.labels || [];
+  const bookingStatusCounts = payload?.bookingStatus?.counts || [];
+
+  if (bookingStatusCanvas && hasSeriesData(bookingStatusCounts)) {
+    new window.Chart(bookingStatusCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: bookingStatusLabels,
+        datasets: [{
+          data: bookingStatusCounts,
+          backgroundColor: [palette.blue, palette.green, palette.violet, palette.red, palette.slate],
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              usePointStyle: true,
+              font: { family: 'Manrope, Segoe UI, sans-serif' },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(bookingStatusCanvas, 'No booking status data available.');
+  }
+
+  const customersCanvas = document.getElementById('reports-customers-chart');
+  const customerLabels = payload?.topCustomers?.labels || [];
+  const customerRevenue = payload?.topCustomers?.values || [];
+
+  if (customersCanvas && hasSeriesData(customerRevenue)) {
+    new window.Chart(customersCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: customerLabels,
+        datasets: [{
+          label: 'Revenue',
+          data: customerRevenue,
+          borderRadius: 8,
+          borderSkipped: false,
+          backgroundColor: 'rgba(22, 152, 109, 0.74)',
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          ...chartDefaults.plugins,
+          legend: {
+            display: false,
+          },
+        },
+        scales: {
+          ...chartDefaults.scales,
+          y: {
+            ...chartDefaults.scales.y,
+            ticks: {
+              color: '#5f6f71',
+              callback(value) {
+                return 'P' + numberFormat.format(Number(value || 0));
+              },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(customersCanvas, 'No customer revenue data available.');
+  }
+
+  const vehicleTypeCanvas = document.getElementById('reports-vehicle-type-chart');
+  const vehicleTypeLabels = payload?.vehicleTypeRevenue?.labels || [];
+  const vehicleTypeValues = payload?.vehicleTypeRevenue?.values || [];
+
+  if (vehicleTypeCanvas && hasSeriesData(vehicleTypeValues)) {
+    new window.Chart(vehicleTypeCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: vehicleTypeLabels,
+        datasets: [{
+          label: 'Revenue',
+          data: vehicleTypeValues,
+          borderRadius: 8,
+          borderSkipped: false,
+          backgroundColor: 'rgba(31, 159, 149, 0.78)',
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        indexAxis: 'y',
+        plugins: {
+          ...chartDefaults.plugins,
+          legend: {
+            display: false,
+          },
+        },
+        scales: {
+          x: {
+            ...chartDefaults.scales.x,
+            ticks: {
+              color: '#5f6f71',
+              callback(value) {
+                return 'P' + numberFormat.format(Number(value || 0));
+              },
+            },
+          },
+          y: {
+            ...chartDefaults.scales.y,
+          },
+        },
+      },
+    });
+  } else {
+    showChartFallback(vehicleTypeCanvas, 'No vehicle type revenue data available.');
+  }
+}
+
+initializeReportsCharts();
+
 const leafletAssets = {
   ready: false,
   pending: null,
