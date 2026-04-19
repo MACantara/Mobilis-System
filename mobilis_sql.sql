@@ -386,6 +386,87 @@ WHERE r.notes LIKE 'Trend seed rental #%'
     WHERE i.rental_id = r.rental_id
   );
 
+-- Add additional maintenance log entries for diverse vehicle service history and alerts
+INSERT INTO MaintenanceLog (vehicle_id, service_date, service_type, cost, performed_by, odometer_km, remarks)
+SELECT seed.vehicle_id, seed.service_date, seed.service_type, seed.cost, seed.performed_by, seed.odometer_km, seed.remarks
+FROM (
+  SELECT 6 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 5 DAY) AS service_date, 'Regular oil change' AS service_type, 450.00 AS cost, 'QuickLube Express' AS performed_by, 38200 AS odometer_km, 'Routine maintenance' AS remarks
+  UNION ALL SELECT 7, DATE_SUB(CURDATE(), INTERVAL 12 DAY), 'Brake inspection', 800.00, 'Brake Masters', 21000, 'Brake pads at 60%'
+  UNION ALL SELECT 8, DATE_SUB(CURDATE(), INTERVAL 25 DAY), 'Transmission fluid check', 550.00, 'AutoTrans Service', 16000, 'Fluid level low'
+  UNION ALL SELECT 9, DATE_SUB(CURDATE(), INTERVAL 8 DAY), 'Air conditioning service', 1200.00, 'CoolAir Solutions', 55200, 'Refrigerant recharge'
+  UNION ALL SELECT 10, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 'Suspension check', 950.00, 'Suspension Pro', 30100, 'Shock absorbers showing wear'
+  UNION ALL SELECT 11, DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'Battery replacement', 3500.00, 'Battery World', 8400, 'Old battery failed load test'
+  UNION ALL SELECT 12, DATE_SUB(CURDATE(), INTERVAL 22 DAY), 'Wheel alignment', 400.00, 'Tire Kingdom', 44500, 'Pulling to the right'
+  UNION ALL SELECT 13, DATE_SUB(CURDATE(), INTERVAL 35 DAY), 'Coolant flush', 650.00, 'Radiator Doctors', 36000, 'Coolant discolored'
+  UNION ALL SELECT 14, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'Timing belt replacement', 4500.00, 'Timing Belt Specialists', 116000, 'Preventive maintenance at 100k km'
+  UNION ALL SELECT 15, DATE_SUB(CURDATE(), INTERVAL 28 DAY), 'Fuel system cleaning', 750.00, 'Fuel Injection Pros', 28000, 'Poor fuel economy reported'
+  UNION ALL SELECT 16, DATE_SUB(CURDATE(), INTERVAL 18 DAY), 'Exhaust system repair', 2200.00, 'Muffler Man', 42000, 'Exhaust leak detected'
+  UNION ALL SELECT 17, DATE_SUB(CURDATE(), INTERVAL 40 DAY), 'Power steering service', 850.00, 'Steering Solutions', 54800, 'Stiff steering at low speeds'
+  UNION ALL SELECT 18, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 'Engine diagnostic', 500.00, 'Engine Experts', 14300, 'Check engine light on'
+  UNION ALL SELECT 19, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'Clutch replacement', 6800.00, 'Clutch Masters', 62800, 'Slipping clutch reported'
+  UNION ALL SELECT 20, DATE_SUB(CURDATE(), INTERVAL 33 DAY), 'Differential service', 1100.00, 'Gearbox Garage', 12300, 'Whining noise from rear'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM MaintenanceLog m
+  WHERE m.vehicle_id = seed.vehicle_id
+    AND m.service_date = seed.service_date
+    AND m.service_type = seed.service_type
+);
+
+-- Add more rental records with diverse statuses for booking status breakdown
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 2 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 3 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 2 DAY) AS return_date, NULL AS actual_return, 'active' AS status, 'Customer extended booking' AS notes
+  UNION ALL SELECT 5, 3, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'completed', 'Short weekend trip'
+  UNION ALL SELECT 6, 4, DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_SUB(CURDATE(), INTERVAL 4 DAY), 'completed', 'Business trip'
+  UNION ALL SELECT 7, 5, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_SUB(CURDATE(), INTERVAL 8 DAY), 'completed', 'Family vacation'
+  UNION ALL SELECT 8, 6, DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY), NULL, 'cancelled', 'Customer changed plans'
+  UNION ALL SELECT 4, 7, DATE_SUB(CURDATE(), INTERVAL 14 DAY), DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_SUB(CURDATE(), INTERVAL 12 DAY), 'completed', 'Airport transfer'
+  UNION ALL SELECT 9, 8, DATE_SUB(CURDATE(), INTERVAL 16 DAY), DATE_SUB(CURDATE(), INTERVAL 14 DAY), DATE_SUB(CURDATE(), INTERVAL 14 DAY), 'completed', 'City tour'
+  UNION ALL SELECT 10, 9, DATE_SUB(CURDATE(), INTERVAL 18 DAY), DATE_SUB(CURDATE(), INTERVAL 16 DAY), NULL, 'cancelled', 'Payment issue'
+  UNION ALL SELECT 5, 10, DATE_ADD(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 7 DAY), NULL, 'pending', 'Future booking confirmed'
+  UNION ALL SELECT 6, 11, DATE_ADD(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY), NULL, 'pending', 'Corporate event booking'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
+-- Add invoices for the new rental records
+INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status, issued_at)
+SELECT
+  r.rental_id,
+  ROUND(vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1), 2) AS base_amount,
+  0.00 AS late_fee,
+  0.00 AS damage_fee,
+  ROUND(vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1), 2) AS total_amount,
+  CASE
+    WHEN r.status = 'cancelled' THEN 'unpaid'
+    WHEN r.status = 'pending' THEN 'unpaid'
+    WHEN MOD(r.rental_id, 3) = 0 THEN 'partial'
+    ELSE 'paid'
+  END AS payment_status,
+  CASE
+    WHEN r.status = 'pending' THEN NULL
+    ELSE TIMESTAMP(DATE_ADD(COALESCE(r.actual_return, r.return_date), INTERVAL 1 DAY), SEC_TO_TIME(28800))
+  END AS issued_at
+FROM Rental r
+JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
+JOIN VehicleCategory vc ON vc.category_id = v.category_id
+WHERE r.notes IN ('Customer extended booking', 'Short weekend trip', 'Business trip', 'Family vacation', 'Airport transfer', 'City tour')
+  AND NOT EXISTS (
+    SELECT 1
+    FROM Invoice i
+    WHERE i.rental_id = r.rental_id
+  );
+
 -- ── 7. AdminContactMessage ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS AdminContactMessage (
   message_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,
