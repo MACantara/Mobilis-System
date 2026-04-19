@@ -26,6 +26,7 @@ viewBegin('app', appLayoutData('Payments', 'payments'));
                     <th>Vehicle</th>
                     <th>Issued</th>
                     <th>Total</th>
+                    <th>Method</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -38,6 +39,7 @@ viewBegin('app', appLayoutData('Payments', 'payments'));
                     <td><?= htmlspecialchars((string) $payment['vehicle']) ?></td>
                     <td><?= htmlspecialchars((string) $payment['issued_at']) ?></td>
                     <td>P<?= number_format((float) $payment['total_amount'], 2) ?></td>
+                    <td><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) ($payment['payment_method'] ?? 'pending')))) ?></td>
                     <td><span class="pill <?= htmlspecialchars($status) ?>"><?= htmlspecialchars(ucfirst((string) $payment['payment_status'])) ?></span></td>
                 </tr>
             <?php endforeach; ?>
