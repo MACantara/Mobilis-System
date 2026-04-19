@@ -108,6 +108,10 @@ viewBegin('auth', authLayoutData('Contact Admin'));
         <h3>Contact your admin</h3>
         <p>Submit a support message and we will route it to the right team.</p>
 
+        <div style="margin: 14px 0 16px;">
+            <button type="button" class="primary-btn" data-modal-open="contactAdminModal">Compose message</button>
+        </div>
+
         <?php if ($success !== ''): ?>
             <div class="alert-success"><?= htmlspecialchars($success) ?></div>
         <?php endif; ?>
@@ -119,25 +123,6 @@ viewBegin('auth', authLayoutData('Contact Admin'));
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-
-        <form method="post" class="auth-form-grid">
-            <label for="contact-full-name">Full name
-                <input id="contact-full-name" type="text" name="full_name" value="<?= htmlspecialchars($form['full_name']) ?>" placeholder="Maria Reyes" required>
-            </label>
-            <label for="contact-email">Email address
-                <input id="contact-email" type="email" name="email" value="<?= htmlspecialchars($form['email']) ?>" placeholder="maria@email.com" required>
-            </label>
-            <label for="contact-phone">Phone (optional)
-                <input id="contact-phone" type="tel" name="phone" value="<?= htmlspecialchars($form['phone']) ?>" placeholder="+63 917 123 4567">
-            </label>
-            <label for="contact-subject">Subject
-                <input id="contact-subject" type="text" name="subject" value="<?= htmlspecialchars($form['subject']) ?>" placeholder="Account access support" required>
-            </label>
-            <label for="contact-message" class="full">Message
-                <textarea id="contact-message" name="message" rows="4" maxlength="1000" placeholder="Please help reset my account access" required><?= htmlspecialchars($form['message']) ?></textarea>
-            </label>
-            <button type="submit" class="primary-btn full">Send to admin</button>
-        </form>
 
         <?php if ($contactHistory !== []): ?>
             <div class="table-wrap" style="margin-top: 12px;">
@@ -179,5 +164,60 @@ viewBegin('auth', authLayoutData('Contact Admin'));
             <a href="/forgot-password.php">Forgot password</a>
         </div>
     <?php viewAuthFormPanelEnd(); ?>
+
+    <?php viewModalStart('contactAdminModal', 'Send a message to admin', ['size' => 'lg']); ?>
+        <form method="post" class="modal-body" id="contactAdminForm">
+            <?php if ($errors !== []): ?>
+                <div class="alert-error" style="margin-bottom: 16px;">
+                    <?php foreach ($errors as $error): ?>
+                        <p><?= htmlspecialchars($error) ?></p>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <label for="contact-full-name">Full name</label>
+            <input id="contact-full-name" type="text" name="full_name" value="<?= htmlspecialchars($form['full_name']) ?>" placeholder="Maria Reyes" required>
+
+            <label for="contact-email">Email address</label>
+            <input id="contact-email" type="email" name="email" value="<?= htmlspecialchars($form['email']) ?>" placeholder="maria@email.com" required>
+
+            <label for="contact-phone">Phone (optional)</label>
+            <input id="contact-phone" type="tel" name="phone" value="<?= htmlspecialchars($form['phone']) ?>" placeholder="+63 917 123 4567">
+
+            <label for="contact-subject">Subject</label>
+            <input id="contact-subject" type="text" name="subject" value="<?= htmlspecialchars($form['subject']) ?>" placeholder="Account access support" required>
+
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" name="message" rows="5" maxlength="1000" placeholder="Please help reset my account access" required><?= htmlspecialchars($form['message']) ?></textarea>
+
+            <div class="modal-footer">
+                <button type="button" class="ghost-btn" data-modal-close>Cancel</button>
+                <button type="submit" class="primary-btn" id="contactAdminSubmit">Send to admin</button>
+            </div>
+        </form>
+    <?php viewModalEnd(); ?>
+
+    <script>
+    (function () {
+        const contactForm = document.getElementById('contactAdminForm');
+        const submitBtn = document.getElementById('contactAdminSubmit');
+
+        if (!contactForm) {
+            return;
+        }
+
+        contactForm.addEventListener('submit', function () {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+            }
+        });
+
+        const shouldReopenModal = <?= $errors !== [] ? 'true' : 'false' ?>;
+        if (shouldReopenModal && window.MobilisModal) {
+            window.MobilisModal.open('contactAdminModal');
+        }
+    })();
+    </script>
 <?php viewEnd();
 ?>

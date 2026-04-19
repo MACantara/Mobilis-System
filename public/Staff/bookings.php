@@ -307,14 +307,30 @@ viewBegin('app', appLayoutData('Bookings', 'bookings', [
                             <a class="ghost-link button-like booking-mini-btn" href="booking-view.php?id=<?= (int) $booking['rental_id'] ?>">View</a>
 
                             <?php if ($statusKey === 'pending'): ?>
-                                <form method="post" action="booking-action.php">
+                                <form
+                                    method="post"
+                                    action="booking-action.php"
+                                    data-confirm-submit
+                                    data-confirm-title="Approve booking"
+                                    data-confirm-message="Approve this booking request now?"
+                                    data-confirm-label="Approve"
+                                    data-cancel-label="Not yet"
+                                >
                                     <input type="hidden" name="action" value="approve">
                                     <input type="hidden" name="id" value="<?= (int) $booking['rental_id'] ?>">
                                     <input type="hidden" name="redirect" value="bookings.php?<?= htmlspecialchars(bookingsQuery()) ?>">
                                     <button class="ghost-link button-like booking-mini-btn" type="submit">Approve</button>
                                 </form>
                             <?php elseif ($statusKey === 'awaiting-payment'): ?>
-                                <form method="post" action="booking-action.php">
+                                <form
+                                    method="post"
+                                    action="booking-action.php"
+                                    data-confirm-submit
+                                    data-confirm-title="Send payment reminder"
+                                    data-confirm-message="Send a payment reminder for this booking?"
+                                    data-confirm-label="Send reminder"
+                                    data-cancel-label="Cancel"
+                                >
                                     <input type="hidden" name="action" value="remind">
                                     <input type="hidden" name="id" value="<?= (int) $booking['rental_id'] ?>">
                                     <input type="hidden" name="redirect" value="bookings.php?<?= htmlspecialchars(bookingsQuery()) ?>">

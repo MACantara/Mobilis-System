@@ -55,46 +55,9 @@ viewBegin('app', appLayoutData('Maintenance', 'maintenance'));
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-</section>
-
-<section class="card customer-form-card" style="margin-bottom: 12px;">
-    <div class="card-header">
-        <h4>Add work order</h4>
+    <div style="margin-top: 12px;">
+        <button type="button" class="primary-btn" data-modal-open="addWorkOrderModal">+ Add work order</button>
     </div>
-    <form method="post" class="customer-form-grid">
-        <label>Vehicle
-            <select name="vehicle_id" required>
-                <option value="">Select vehicle</option>
-                <?php foreach ($maintenanceVehicles as $vehicle): ?>
-                    <?php $id = (int) ($vehicle['vehicle_id'] ?? 0); ?>
-                    <option value="<?= $id ?>" <?= (string) $id === $form['vehicle_id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars((string) ($vehicle['name'] ?? 'Unknown')) ?> (<?= htmlspecialchars((string) ($vehicle['plate'] ?? '')) ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-        <label>Service date
-            <input type="date" name="service_date" value="<?= htmlspecialchars($form['service_date']) ?>" required>
-        </label>
-        <label>Service type
-            <input type="text" name="service_type" value="<?= htmlspecialchars($form['service_type']) ?>" placeholder="Oil change" required>
-        </label>
-        <label>Odometer (km)
-            <input type="number" name="odometer_km" value="<?= htmlspecialchars($form['odometer_km']) ?>" min="1" required>
-        </label>
-        <label>Performed by
-            <input type="text" name="performed_by" value="<?= htmlspecialchars($form['performed_by']) ?>" placeholder="Service center or technician">
-        </label>
-        <label>Estimated/actual cost
-            <input type="number" name="cost" value="<?= htmlspecialchars($form['cost']) ?>" min="0" step="0.01" placeholder="0.00">
-        </label>
-        <label class="full">Remarks
-            <textarea name="remarks" rows="2" placeholder="Optional notes"><?= htmlspecialchars($form['remarks']) ?></textarea>
-        </label>
-        <div class="customer-form-actions full">
-            <button type="submit" class="primary-btn">Add work order</button>
-        </div>
-    </form>
 </section>
 
 <section class="card">
@@ -126,5 +89,66 @@ viewBegin('app', appLayoutData('Maintenance', 'maintenance'));
         </table>
     </div>
 </section>
+
+<?php viewModalStart('addWorkOrderModal', 'Add work order', ['size' => 'lg']); ?>
+    <form method="post" class="modal-body" id="addWorkOrderForm">
+        <label for="wo_vehicle_id">Vehicle</label>
+        <select id="wo_vehicle_id" name="vehicle_id" required>
+            <option value="">Select vehicle</option>
+            <?php foreach ($maintenanceVehicles as $vehicle): ?>
+                <?php $id = (int) ($vehicle['vehicle_id'] ?? 0); ?>
+                <option value="<?= $id ?>" <?= (string) $id === $form['vehicle_id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars((string) ($vehicle['name'] ?? 'Unknown')) ?> (<?= htmlspecialchars((string) ($vehicle['plate'] ?? '')) ?>)
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <label for="wo_service_date">Service date</label>
+        <input id="wo_service_date" type="date" name="service_date" value="<?= htmlspecialchars($form['service_date']) ?>" required>
+
+        <label for="wo_service_type">Service type</label>
+        <input id="wo_service_type" type="text" name="service_type" value="<?= htmlspecialchars($form['service_type']) ?>" placeholder="Oil change" required>
+
+        <label for="wo_odometer_km">Odometer (km)</label>
+        <input id="wo_odometer_km" type="number" name="odometer_km" value="<?= htmlspecialchars($form['odometer_km']) ?>" min="1" required>
+
+        <label for="wo_performed_by">Performed by</label>
+        <input id="wo_performed_by" type="text" name="performed_by" value="<?= htmlspecialchars($form['performed_by']) ?>" placeholder="Service center or technician">
+
+        <label for="wo_cost">Estimated/actual cost</label>
+        <input id="wo_cost" type="number" name="cost" value="<?= htmlspecialchars($form['cost']) ?>" min="0" step="0.01" placeholder="0.00">
+
+        <label for="wo_remarks">Remarks</label>
+        <textarea id="wo_remarks" name="remarks" rows="3" placeholder="Optional notes"><?= htmlspecialchars($form['remarks']) ?></textarea>
+
+        <div class="modal-footer">
+            <button type="button" class="ghost-btn" data-modal-close>Cancel</button>
+            <button type="submit" class="primary-btn" id="addWorkOrderSubmit">Add work order</button>
+        </div>
+    </form>
+<?php viewModalEnd(); ?>
+
+<script>
+(function () {
+    const addWorkOrderForm = document.getElementById('addWorkOrderForm');
+    const addWorkOrderSubmit = document.getElementById('addWorkOrderSubmit');
+
+    if (!addWorkOrderForm) {
+        return;
+    }
+
+    addWorkOrderForm.addEventListener('submit', function () {
+        if (addWorkOrderSubmit) {
+            addWorkOrderSubmit.disabled = true;
+            addWorkOrderSubmit.textContent = 'Saving...';
+        }
+    });
+
+    const shouldOpen = <?= $errors !== [] ? 'true' : 'false' ?>;
+    if (shouldOpen && window.MobilisModal) {
+        window.MobilisModal.open('addWorkOrderModal');
+    }
+})();
+</script>
 <?php viewEnd();
 ?>

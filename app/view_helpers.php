@@ -182,3 +182,35 @@ if (!function_exists('viewErrorFormPanel')) {
         echo '</section>';
     }
 }
+
+if (!function_exists('viewModalStart')) {
+    function viewModalStart(string $id, string $title, array $options = []): void
+    {
+        $size = strtolower((string) ($options['size'] ?? 'md'));
+        if (!in_array($size, ['sm', 'md', 'lg', 'xl'], true)) {
+            $size = 'md';
+        }
+
+        $showClose = (bool) ($options['show_close'] ?? true);
+        $closeLabel = (string) ($options['close_label'] ?? 'Close modal');
+
+        echo '<div id="' . htmlspecialchars($id) . '" class="modal" data-modal data-modal-size="' . htmlspecialchars($size) . '" role="dialog" aria-modal="true" aria-hidden="true">';
+        echo '<div class="modal-content">';
+        echo '<div class="modal-header">';
+        echo '<h4>' . htmlspecialchars($title) . '</h4>';
+
+        if ($showClose) {
+            echo '<button type="button" class="modal-close" data-modal-close aria-label="' . htmlspecialchars($closeLabel) . '">&times;</button>';
+        }
+
+        echo '</div>';
+    }
+}
+
+if (!function_exists('viewModalEnd')) {
+    function viewModalEnd(): void
+    {
+        echo '</div>';
+        echo '</div>';
+    }
+}

@@ -65,6 +65,7 @@ if ($notice === 'vehicle_created') {
 }
 
 $allVehicles = getVehicles(500);
+$vehicleCategories = getVehicleCategories();
 $statusFilter = strtolower((string) ($_GET['status'] ?? 'all'));
 $categoryFilter = strtolower((string) ($_GET['category'] ?? 'all'));
 $searchTerm = trim((string) ($_GET['q'] ?? ''));
@@ -162,7 +163,7 @@ viewBegin('app', appLayoutData('Vehicles', 'vehicles', [
         <input type="hidden" name="status" value="<?= htmlspecialchars($statusFilter) ?>">
         <input type="hidden" name="category" value="<?= htmlspecialchars($categoryFilter) ?>">
         <a class="ghost-link button-like" href="vehicles-export.php?<?= htmlspecialchars(vehiclesQuery()) ?>">Export</a>
-        <a class="primary-btn" href="vehicle-create.php">+ Add vehicle</a>
+        <button type="button" class="primary-btn" data-modal-open="addVehicleModal">+ Add vehicle</button>
     </form>
 </section>
 
@@ -237,5 +238,63 @@ viewBegin('app', appLayoutData('Vehicles', 'vehicles', [
         <article class="card"><p class="muted">No vehicles found for the selected filters.</p></article>
     <?php endif; ?>
 </section>
+
+<?php viewModalStart('addVehicleModal', 'Add vehicle', ['size' => 'lg']); ?>
+    <form method="post" action="vehicle-create.php" class="modal-body" id="addVehicleForm">
+        <label for="add_vehicle_name">Vehicle name (Brand Model)</label>
+        <input id="add_vehicle_name" type="text" name="name" placeholder="Toyota Fortuner" required>
+
+        <label for="add_vehicle_category">Category</label>
+        <select id="add_vehicle_category" name="category_id" required>
+            <option value="">Select category</option>
+            <?php foreach ($vehicleCategories as $category): ?>
+                <?php $categoryId = (int) ($category['category_id'] ?? 0); ?>
+                <option value="<?= $categoryId ?>"><?= htmlspecialchars((string) ($category['category_name'] ?? '')) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <label for="add_vehicle_plate">Plate number</label>
+        <input id="add_vehicle_plate" type="text" name="plate_number" placeholder="ABC 1234" required>
+
+        <label for="add_vehicle_year">Year</label>
+        <input id="add_vehicle_year" type="number" name="year" min="1990" max="2099" required>
+
+        <label for="add_vehicle_color">Color</label>
+        <input id="add_vehicle_color" type="text" name="color" required>
+
+        <label for="add_vehicle_mileage">Mileage (km)</label>
+        <input id="add_vehicle_mileage" type="number" name="mileage_km" min="0" value="0" required>
+
+        <label for="add_vehicle_status">Status</label>
+        <select id="add_vehicle_status" name="status" required>
+            <option value="available" selected>Available</option>
+            <option value="rented">Rented</option>
+            <option value="maintenance">Maintenance</option>
+        </select>
+
+        <div class="modal-footer">
+            <button type="button" class="ghost-btn" data-modal-close>Cancel</button>
+            <button type="submit" class="primary-btn" id="addVehicleSubmit">Create vehicle</button>
+        </div>
+    </form>
+<?php viewModalEnd(); ?>
+
+<script>
+(function () {
+    const addVehicleForm = document.getElementById('addVehicleForm');
+    const addVehicleSubmit = document.getElementById('addVehicleSubmit');
+
+    if (!addVehicleForm) {
+        return;
+    }
+
+    addVehicleForm.addEventListener('submit', function () {
+        if (addVehicleSubmit) {
+            addVehicleSubmit.disabled = true;
+            addVehicleSubmit.textContent = 'Creating...';
+        }
+    });
+})();
+</script>
 <?php viewEnd();
 ?>

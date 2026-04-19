@@ -21,5 +21,6 @@ $content = (string) ($content ?? '');
 <main class="auth-split-shell">
     <?= $content ?>
 </main>
+<script src="/assets/app.js"></script>
 </body>
 </html>

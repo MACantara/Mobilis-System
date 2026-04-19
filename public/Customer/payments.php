@@ -93,7 +93,16 @@ viewBegin('app', appLayoutData('Payments', 'payments', ['role' => 'customer']));
                         <td><span class="pill <?= htmlspecialchars($status) ?>"><?= htmlspecialchars(ucfirst((string) $payment['payment_status'])) ?></span></td>
                         <td>
                             <?php if (in_array($status, ['unpaid', 'partial'], true)): ?>
-                                <form method="post" class="booking-actions" style="justify-content:flex-start;">
+                                <form
+                                    method="post"
+                                    class="booking-actions"
+                                    style="justify-content:flex-start;"
+                                    data-confirm-submit
+                                    data-confirm-title="Confirm payment"
+                                    data-confirm-message="Record this invoice as paid using the selected method?"
+                                    data-confirm-label="Record payment"
+                                    data-cancel-label="Review first"
+                                >
                                     <input type="hidden" name="action" value="pay">
                                     <input type="hidden" name="invoice_id" value="<?= (int) ($payment['invoice_id'] ?? 0) ?>">
                                     <select name="payment_method" required>

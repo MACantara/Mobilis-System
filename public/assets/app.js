@@ -31,6 +31,233 @@ if (insightsOutput && insightButtons.length > 0 && insightsOutput.textContent.in
   refreshInsights();
 }
 
+const MobilisModal = (() => {
+  const openStack = [];
+  let escBound = false;
+
+  function resolveModal(target) {
+    if (!target) return null;
+    if (target instanceof HTMLElement && target.classList.contains('modal')) {
+      return target;
+    }
+    if (target instanceof HTMLElement && target.dataset.modalOpen) {
+      return document.getElementById(target.dataset.modalOpen) || null;
+    }
+    if (typeof target === 'string') {
+      return document.getElementById(target) || null;
+    }
+    return null;
+  }
+
+  function syncBodyState() {
+    document.body.classList.toggle('modal-open', openStack.length > 0);
+  }
+
+  function open(target) {
+    const modal = resolveModal(target);
+    if (!modal) return;
+
+    if (!openStack.includes(modal)) {
+      openStack.push(modal);
+    }
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    syncBodyState();
+  }
+
+  function close(target) {
+    const modal = resolveModal(target);
+    if (!modal) return;
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+
+    const idx = openStack.indexOf(modal);
+    if (idx >= 0) {
+      openStack.splice(idx, 1);
+    }
+
+    syncBodyState();
+  }
+
+  function closeTop() {
+    const topModal = openStack[openStack.length - 1];
+    if (topModal) {
+      close(topModal);
+    }
+  }
+
+  function ensureSharedConfirmModal() {
+    let modal = document.getElementById('shared-confirm-modal');
+    if (modal) {
+      return modal;
+    }
+
+    modal = document.createElement('div');
+    modal.id = 'shared-confirm-modal';
+    modal.className = 'modal';
+    modal.setAttribute('data-modal', '');
+    modal.setAttribute('data-modal-size', 'sm');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 id="shared-confirm-title">Please confirm</h4>
+          <button type="button" class="modal-close" data-modal-close aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="shared-confirm-message">Continue with this action?</p>
+          <div class="modal-footer">
+            <button type="button" class="ghost-btn" data-modal-close id="shared-confirm-cancel">Cancel</button>
+            <button type="button" class="primary-btn" id="shared-confirm-approve">Confirm</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    bind(document);
+    return modal;
+  }
+
+  function confirm(options = {}) {
+    const modal = ensureSharedConfirmModal();
+    const titleEl = document.getElementById('shared-confirm-title');
+    const messageEl = document.getElementById('shared-confirm-message');
+    const approveBtn = document.getElementById('shared-confirm-approve');
+    const cancelBtn = document.getElementById('shared-confirm-cancel');
+
+    const title = String(options.title || 'Please confirm');
+    const message = String(options.message || 'Continue with this action?');
+    const confirmLabel = String(options.confirmLabel || 'Confirm');
+    const cancelLabel = String(options.cancelLabel || 'Cancel');
+    const danger = Boolean(options.danger || false);
+
+    if (titleEl) titleEl.textContent = title;
+    if (messageEl) messageEl.textContent = message;
+    if (approveBtn) {
+      approveBtn.textContent = confirmLabel;
+      approveBtn.classList.toggle('text-error', danger);
+    }
+    if (cancelBtn) cancelBtn.textContent = cancelLabel;
+
+    return new Promise((resolve) => {
+      let settled = false;
+
+      function done(value) {
+        if (settled) return;
+        settled = true;
+        if (approveBtn) approveBtn.removeEventListener('click', handleApprove);
+        if (cancelBtn) cancelBtn.removeEventListener('click', handleCancel);
+        modal.removeEventListener('click', handleBackdropCancel);
+        close(modal);
+        resolve(value);
+      }
+
+      function handleApprove(event) {
+        event.preventDefault();
+        done(true);
+      }
+
+      function handleCancel(event) {
+        event.preventDefault();
+        done(false);
+      }
+
+      function handleBackdropCancel(event) {
+        if (event.target === modal) {
+          done(false);
+        }
+      }
+
+      if (approveBtn) approveBtn.addEventListener('click', handleApprove);
+      if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
+      modal.addEventListener('click', handleBackdropCancel);
+
+      open(modal);
+    });
+  }
+
+  function bind(root = document) {
+    const openTriggers = root.querySelectorAll('[data-modal-open]');
+    openTriggers.forEach((trigger) => {
+      if (trigger.dataset.modalTriggerBound === '1') return;
+      trigger.dataset.modalTriggerBound = '1';
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        open(trigger);
+      });
+    });
+
+    const closeTriggers = root.querySelectorAll('[data-modal-close]');
+    closeTriggers.forEach((trigger) => {
+      if (trigger.dataset.modalCloseBound === '1') return;
+      trigger.dataset.modalCloseBound = '1';
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        const modal = trigger.closest('.modal');
+        close(modal);
+      });
+    });
+
+    const modals = root.querySelectorAll('.modal[data-modal]');
+    modals.forEach((modal) => {
+      if (modal.dataset.modalBound === '1') return;
+      modal.dataset.modalBound = '1';
+      modal.addEventListener('click', (event) => {
+        if (event.target !== modal) return;
+        if (modal.dataset.backdropClose === 'false') return;
+        close(modal);
+      });
+    });
+
+    const confirmForms = root.querySelectorAll('form[data-confirm-submit]');
+    confirmForms.forEach((form) => {
+      if (form.dataset.confirmBound === '1') return;
+      form.dataset.confirmBound = '1';
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const ok = await confirm({
+          title: form.dataset.confirmTitle || 'Please confirm',
+          message: form.dataset.confirmMessage || 'Continue with this action?',
+          confirmLabel: form.dataset.confirmLabel || 'Confirm',
+          cancelLabel: form.dataset.cancelLabel || 'Cancel',
+          danger: form.dataset.confirmDanger === '1',
+        });
+
+        if (ok) {
+          HTMLFormElement.prototype.submit.call(form);
+        }
+      });
+    });
+
+    if (!escBound) {
+      escBound = true;
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeTop();
+        }
+      });
+    }
+  }
+
+  return {
+    open,
+    close,
+    closeTop,
+    bind,
+    confirm,
+  };
+})();
+
+window.MobilisModal = MobilisModal;
+MobilisModal.bind(document);
+
 function formatCurrency(value) {
   const number = Number(value || 0);
   return 'P' + number.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -87,7 +314,6 @@ function setupCustomerProfilePanel() {
   const profileNoShows = document.getElementById('profile-no-shows');
   const recentBookingsList = document.getElementById('profile-recent-bookings');
   const profileMessageBtn = document.getElementById('profile-message-btn');
-  const profileEditBtn = document.getElementById('profile-edit-btn');
   const profileBookingBtn = document.getElementById('profile-booking-btn');
   const customerSearchInput = document.querySelector('[data-customer-search]');
 

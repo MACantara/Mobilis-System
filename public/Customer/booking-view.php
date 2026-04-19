@@ -82,7 +82,16 @@ viewBegin('app', appLayoutData('Booking details', 'bookings', ['role' => 'custom
             <?php endif; ?>
 
             <?php if ($canCancel): ?>
-                <form method="post" class="booking-actions">
+                <form
+                    method="post"
+                    class="booking-actions"
+                    data-confirm-submit
+                    data-confirm-title="Cancel booking"
+                    data-confirm-message="This booking will be cancelled and cannot be auto-reversed. Continue?"
+                    data-confirm-label="Cancel booking"
+                    data-cancel-label="Keep booking"
+                    data-confirm-danger="1"
+                >
                     <input type="hidden" name="action" value="cancel">
                     <input type="text" name="reason" placeholder="Reason for cancellation (optional)" maxlength="200">
                     <button type="submit" class="ghost-link button-like booking-mini-btn">Cancel booking</button>
