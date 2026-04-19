@@ -182,20 +182,20 @@ CREATE TABLE IF NOT EXISTS Rental (
 INSERT INTO Rental (rental_id, customer_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
 SELECT seed.rental_id, seed.customer_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
 FROM (
-  SELECT 412 AS rental_id, 1 AS customer_id, 1 AS vehicle_id, '2026-04-13' AS pickup_date, '2026-04-16' AS return_date, NULL AS actual_return, 'active' AS status, 'Priority corporate booking' AS notes
-  UNION ALL SELECT 411, 2, 2, '2026-04-14', '2026-04-14', NULL, 'pending', 'Awaiting approval'
-  UNION ALL SELECT 410, 3, 3, '2026-04-15', '2026-04-20', NULL, 'active', 'Family vacation trip'
-  UNION ALL SELECT 409, 4, 5, '2026-04-17', '2026-04-19', NULL, 'active', 'Weekend out-of-town use'
-  UNION ALL SELECT 408, 5, 4, '2026-04-10', '2026-04-12', '2026-04-12', 'completed', 'Completed with receipt issued'
-  UNION ALL SELECT 407, 6, 6, '2026-04-08', '2026-04-08', NULL, 'cancelled', 'Customer cancelled same day'
-  UNION ALL SELECT 406, 1, 5, '2026-03-28', '2026-03-30', '2026-03-30', 'completed', 'Recent booking history'
-  UNION ALL SELECT 405, 1, 3, '2026-03-10', '2026-03-14', '2026-03-14', 'completed', 'Recent booking history'
-  UNION ALL SELECT 404, 7, 11, '2026-04-03', '2026-04-06', NULL, 'active', 'VIP corporate booking'
-  UNION ALL SELECT 403, 7, 12, '2026-04-05', '2026-04-09', NULL, 'active', 'VIP corporate booking'
-  UNION ALL SELECT 402, 2, 7, '2026-04-02', '2026-04-05', NULL, 'active', 'Regional travel'
-  UNION ALL SELECT 401, 4, 8, '2026-04-01', '2026-04-03', NULL, 'active', 'Branch operations'
-  UNION ALL SELECT 400, 3, 9, '2026-04-04', '2026-04-07', NULL, 'active', 'Intercity transfer'
-  UNION ALL SELECT 399, 5, 10, '2026-04-06', '2026-04-08', NULL, 'active', 'Event support fleet'
+  SELECT 412 AS rental_id, 1 AS customer_id, 1 AS vehicle_id, DATE_ADD(CURDATE(), INTERVAL 1 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 4 DAY) AS return_date, NULL AS actual_return, 'active' AS status, 'Priority corporate booking' AS notes
+  UNION ALL SELECT 411, 2, 2, DATE_ADD(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'pending', 'Awaiting approval'
+  UNION ALL SELECT 410, 3, 3, DATE_ADD(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 8 DAY), NULL, 'active', 'Family vacation trip'
+  UNION ALL SELECT 409, 4, 5, DATE_ADD(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 7 DAY), NULL, 'active', 'Weekend out-of-town use'
+  UNION ALL SELECT 408, 5, 4, DATE_SUB(CURDATE(), INTERVAL 9 DAY), DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_SUB(CURDATE(), INTERVAL 7 DAY), 'completed', 'Completed with receipt issued'
+  UNION ALL SELECT 407, 6, 6, DATE_SUB(CURDATE(), INTERVAL 11 DAY), DATE_SUB(CURDATE(), INTERVAL 11 DAY), NULL, 'cancelled', 'Customer cancelled same day'
+  UNION ALL SELECT 406, 1, 5, DATE_SUB(CURDATE(), INTERVAL 22 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'completed', 'Recent booking history'
+  UNION ALL SELECT 405, 1, 3, DATE_SUB(CURDATE(), INTERVAL 40 DAY), DATE_SUB(CURDATE(), INTERVAL 36 DAY), DATE_SUB(CURDATE(), INTERVAL 36 DAY), 'completed', 'Recent booking history'
+  UNION ALL SELECT 404, 7, 11, DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 1 DAY), NULL, 'active', 'VIP corporate booking'
+  UNION ALL SELECT 403, 7, 12, DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY), NULL, 'active', 'VIP corporate booking'
+  UNION ALL SELECT 402, 2, 7, DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 1 DAY), NULL, 'active', 'Regional travel'
+  UNION ALL SELECT 401, 4, 8, DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Branch operations'
+  UNION ALL SELECT 400, 3, 9, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Intercity transfer'
+  UNION ALL SELECT 399, 5, 10, DATE_SUB(CURDATE(), INTERVAL 6 DAY), DATE_ADD(CURDATE(), INTERVAL 1 DAY), NULL, 'active', 'Event support fleet'
 ) AS seed
 WHERE NOT EXISTS (
   SELECT 1
@@ -207,8 +207,8 @@ INSERT INTO Rental (customer_id, vehicle_id, pickup_date, return_date, actual_re
 SELECT
   ((v.vehicle_id - 1) % 7) + 1 AS customer_id,
   v.vehicle_id,
-  DATE_ADD('2026-03-01', INTERVAL ((v.vehicle_id - 1) % 9) DAY) AS pickup_date,
-  DATE_ADD('2026-03-03', INTERVAL ((v.vehicle_id - 1) % 9) DAY) AS return_date,
+  DATE_SUB(CURDATE(), INTERVAL ((v.vehicle_id - 1) % 5 + 1) DAY) AS pickup_date,
+  DATE_ADD(CURDATE(), INTERVAL ((v.vehicle_id - 1) % 4 + 1) DAY) AS return_date,
   NULL AS actual_return,
   'active' AS status,
   'Baseline seeded active rental' AS notes
@@ -239,11 +239,11 @@ CREATE TABLE IF NOT EXISTS MaintenanceLog (
 INSERT INTO MaintenanceLog (vehicle_id, service_date, service_type, cost, performed_by, odometer_km)
 SELECT seed.vehicle_id, seed.service_date, seed.service_type, seed.cost, seed.performed_by, seed.odometer_km
 FROM (
-  SELECT 4 AS vehicle_id, '2026-04-01' AS service_date, 'Engine overhaul' AS service_type, 8500.00 AS cost, 'AMS Auto Shop' AS performed_by, 94800 AS odometer_km
-  UNION ALL SELECT 1, '2026-03-10', 'Oil change', 600.00, 'Petron Lube Center', 44500
-  UNION ALL SELECT 5, '2026-02-20', 'Tire rotation', 350.00, 'FastFit Tires', 129000
-  UNION ALL SELECT 3, '2026-01-15', 'Brake pad replacement', 1200.00, 'Ford Service Center', 77500
-  UNION ALL SELECT 2, '2025-12-05', 'Air filter replacement', 400.00, 'Honda Casa', 11500
+  SELECT 4 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 18 DAY) AS service_date, 'Engine overhaul' AS service_type, 8500.00 AS cost, 'AMS Auto Shop' AS performed_by, 94800 AS odometer_km
+  UNION ALL SELECT 1, DATE_SUB(CURDATE(), INTERVAL 40 DAY), 'Oil change', 600.00, 'Petron Lube Center', 44500
+  UNION ALL SELECT 5, DATE_SUB(CURDATE(), INTERVAL 55 DAY), 'Tire rotation', 350.00, 'FastFit Tires', 129000
+  UNION ALL SELECT 3, DATE_SUB(CURDATE(), INTERVAL 70 DAY), 'Brake pad replacement', 1200.00, 'Ford Service Center', 77500
+  UNION ALL SELECT 2, DATE_SUB(CURDATE(), INTERVAL 120 DAY), 'Air filter replacement', 400.00, 'Honda Casa', 11500
 ) AS seed
 WHERE NOT EXISTS (
   SELECT 1
@@ -272,20 +272,20 @@ CREATE TABLE IF NOT EXISTS Invoice (
 INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status, issued_at)
 SELECT seed.rental_id, seed.base_amount, seed.late_fee, seed.damage_fee, seed.total_amount, seed.payment_status, seed.issued_at
 FROM (
-  SELECT 412 AS rental_id, 10500.00 AS base_amount, 0.00 AS late_fee, 0.00 AS damage_fee, 10500.00 AS total_amount, 'paid' AS payment_status, '2026-04-13 08:00:00' AS issued_at
-  UNION ALL SELECT 411, 2200.00, 0.00, 0.00, 2200.00, 'unpaid', '2026-04-14 09:00:00'
-  UNION ALL SELECT 410, 20000.00, 0.00, 0.00, 20000.00, 'paid', '2026-04-15 10:00:00'
-  UNION ALL SELECT 409, 6400.00, 0.00, 0.00, 6400.00, 'unpaid', '2026-04-17 11:00:00'
-  UNION ALL SELECT 408, 5600.00, 0.00, 0.00, 5600.00, 'paid', '2026-04-12 14:30:00'
-  UNION ALL SELECT 407, 3800.00, 0.00, 0.00, 3800.00, 'unpaid', '2026-04-08 15:20:00'
-  UNION ALL SELECT 406, 6400.00, 0.00, 0.00, 6400.00, 'paid', '2026-03-30 16:00:00'
-  UNION ALL SELECT 405, 125100.00, 0.00, 0.00, 125100.00, 'paid', '2026-03-14 13:10:00'
-  UNION ALL SELECT 404, 150000.00, 0.00, 0.00, 150000.00, 'paid', '2026-04-06 12:00:00'
-  UNION ALL SELECT 403, 126300.00, 0.00, 0.00, 126300.00, 'paid', '2026-04-09 12:15:00'
-  UNION ALL SELECT 402, 36200.00, 0.00, 0.00, 36200.00, 'paid', '2026-04-05 12:45:00'
-  UNION ALL SELECT 401, 14800.00, 0.00, 0.00, 14800.00, 'paid', '2026-04-03 18:25:00'
-  UNION ALL SELECT 400, 178500.00, 0.00, 0.00, 178500.00, 'paid', '2026-04-07 18:45:00'
-  UNION ALL SELECT 399, 49200.00, 0.00, 0.00, 49200.00, 'paid', '2026-04-08 19:00:00'
+  SELECT 412 AS rental_id, 10500.00 AS base_amount, 0.00 AS late_fee, 0.00 AS damage_fee, 10500.00 AS total_amount, 'paid' AS payment_status, TIMESTAMP(CURDATE(), '08:00:00') AS issued_at
+  UNION ALL SELECT 411, 2200.00, 0.00, 0.00, 2200.00, 'unpaid', TIMESTAMP(CURDATE(), '09:00:00')
+  UNION ALL SELECT 410, 20000.00, 0.00, 0.00, 20000.00, 'paid', TIMESTAMP(CURDATE(), '10:00:00')
+  UNION ALL SELECT 409, 6400.00, 0.00, 0.00, 6400.00, 'unpaid', TIMESTAMP(CURDATE(), '11:00:00')
+  UNION ALL SELECT 408, 5600.00, 0.00, 0.00, 5600.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 7 DAY), '14:30:00')
+  UNION ALL SELECT 407, 3800.00, 0.00, 0.00, 3800.00, 'unpaid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 11 DAY), '15:20:00')
+  UNION ALL SELECT 406, 6400.00, 0.00, 0.00, 6400.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 20 DAY), '16:00:00')
+  UNION ALL SELECT 405, 125100.00, 0.00, 0.00, 125100.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 36 DAY), '13:10:00')
+  UNION ALL SELECT 404, 150000.00, 0.00, 0.00, 150000.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 2 DAY), '12:00:00')
+  UNION ALL SELECT 403, 126300.00, 0.00, 0.00, 126300.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '12:15:00')
+  UNION ALL SELECT 402, 36200.00, 0.00, 0.00, 36200.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 4 DAY), '12:45:00')
+  UNION ALL SELECT 401, 14800.00, 0.00, 0.00, 14800.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 3 DAY), '18:25:00')
+  UNION ALL SELECT 400, 178500.00, 0.00, 0.00, 178500.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 5 DAY), '18:45:00')
+  UNION ALL SELECT 399, 49200.00, 0.00, 0.00, 49200.00, 'paid', TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 6 DAY), '19:00:00')
 ) AS seed
 WHERE NOT EXISTS (
   SELECT 1
@@ -344,8 +344,8 @@ CREATE TABLE IF NOT EXISTS PasswordResetRequest (
 INSERT INTO PasswordResetRequest (customer_id, email, license_number, reason, status, requested_ip)
 SELECT seed.customer_id, seed.email, seed.license_number, seed.reason, seed.status, seed.requested_ip
 FROM (
-  SELECT 1 AS customer_id, 'juan@email.com' AS email, 'N01-23-456789' AS license_number, 'I forgot my password after changing devices.' AS reason, 'pending' AS status, '127.0.0.1' AS requested_ip
-  UNION ALL SELECT 2, 'maria@email.com', 'N02-34-567890', 'Unable to sign in with previous credentials.', 'processing', '127.0.0.1'
+  SELECT 1 AS customer_id, 'maria@email.com' AS email, 'N01-23-456789' AS license_number, 'I forgot my password after changing devices.' AS reason, 'pending' AS status, '127.0.0.1' AS requested_ip
+  UNION ALL SELECT 2, 'jdc@email.com', 'N02-34-567890', 'Unable to sign in with previous credentials.', 'processing', '127.0.0.1'
 ) AS seed
 WHERE NOT EXISTS (
   SELECT 1
