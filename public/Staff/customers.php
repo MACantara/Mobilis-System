@@ -77,7 +77,6 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
             <div class="customers-toolbar">
                 <input type="search" placeholder="Search customers..." aria-label="Search customers" data-customer-search>
                 <a class="ghost-link button-like" href="customers-export.php">Export</a>
-                <a class="primary-btn" href="customer-create.php">+ Add customer</a>
             </div>
         </div>
         <div class="table-wrap">
@@ -165,7 +164,6 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
 
             <div class="customer-profile-actions">
                 <a class="ghost-link button-like" id="profile-message-btn" href="mailto:<?= htmlspecialchars((string) ($selected['email'] ?? '')) ?>">Message</a>
-                <a class="ghost-link button-like" id="profile-edit-btn" href="customer-edit.php?id=<?= (int) ($selected['user_id'] ?? 0) ?>">Edit</a>
             </div>
         <?php else: ?>
             <p>No customer data available.</p>
