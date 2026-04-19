@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $error = 'Invalid credentials. Try admin@mobilis.ph / admin123';
+    $error = 'Invalid credentials.';
 }
 ?>
 <!doctype html>

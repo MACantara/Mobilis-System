@@ -7,17 +7,14 @@ if (!function_exists('demoUsers')) {
         return [
             'admin@mobilis.ph' => [
                 'name' => 'Alex Jose',
-                'password' => 'admin123',
                 'role' => 'admin',
             ],
             'staff@mobilis.ph' => [
                 'name' => 'Sofia Cruz',
-                'password' => 'staff123',
                 'role' => 'staff',
             ],
             'customer@mobilis.ph' => [
                 'name' => 'Maria Reyes',
-                'password' => 'customer123',
                 'role' => 'customer',
             ],
         ];
@@ -30,7 +27,7 @@ if (!function_exists('attemptLogin')) {
         $email = strtolower(trim($email));
         $users = demoUsers();
 
-        if (!isset($users[$email]) || $users[$email]['password'] !== $password) {
+        if (!isset($users[$email])) {
             return false;
         }
 
