@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 viewBegin('auth', authLayoutData('Forgot Password'));
 ?>
     <section class="auth-brand-panel">
-        <a href="/index.php" class="brand hero-brand">
+        <a href="<?= baseUrl() ?>/index.php" class="brand hero-brand">
             <img src="<?= baseUrl() ?>/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
         <div class="hero-copy">
@@ -86,8 +86,8 @@ viewBegin('auth', authLayoutData('Forgot Password'));
         </form>
 
         <div class="auth-form-footer-links">
-            <a href="/login.php">Back to sign in</a>
-            <a href="/contact-admin.php">Contact admin</a>
+            <a href="<?= baseUrl() ?>/login.php">Back to sign in</a>
+            <a href="<?= baseUrl() ?>/contact-admin.php">Contact admin</a>
         </div>
     <?php viewAuthFormPanelEnd(); ?>
 <?php viewEnd();

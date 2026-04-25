@@ -53,7 +53,7 @@ $content = (string) ($content ?? '');
                 <p class="sidebar-user-label">Signed in as</p>
                 <p class="sidebar-user-role"><?= htmlspecialchars(ucfirst($role)) ?></p>
             </div>
-            <a class="sidebar-logout-btn" href="/logout.php">Sign out</a>
+            <a class="sidebar-logout-btn" href="<?= baseUrl() ?>/logout.php">Sign out</a>
         </div>
     </aside>
 

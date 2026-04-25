@@ -72,7 +72,7 @@ if ($contactHistoryEmail !== '') {
 viewBegin('auth', authLayoutData('Contact Admin'));
 ?>
     <section class="auth-brand-panel">
-        <a href="/index.php" class="brand hero-brand">
+        <a href="<?= baseUrl() ?>/index.php" class="brand hero-brand">
             <img src="<?= baseUrl() ?>/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
         <div class="hero-copy">
@@ -180,8 +180,8 @@ viewBegin('auth', authLayoutData('Contact Admin'));
         <?php endif; ?>
 
         <div class="auth-form-footer-links">
-            <a href="/login.php">Back to sign in</a>
-            <a href="/forgot-password.php">Forgot password</a>
+            <a href="<?= baseUrl() ?>/login.php">Back to sign in</a>
+            <a href="<?= baseUrl() ?>/forgot-password.php">Forgot password</a>
         </div>
     <?php viewAuthFormPanelEnd(); ?>
 

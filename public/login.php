@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="login-body">
 <div class="login-shell">
     <section class="login-brand-panel">
-        <a href="/index.php" class="brand hero-brand">
+        <a href="<?= baseUrl() ?>/index.php" class="brand hero-brand">
             <img src="<?= baseUrl() ?>/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
         <div class="hero-copy">
@@ -80,19 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input id="remember-me" type="checkbox" name="remember_me" value="1">
                         <span>Remember me</span>
                     </label>
-                    <a href="/forgot-password.php" class="text-link">Forgot password?</a>
+                    <a href="<?= baseUrl() ?>/forgot-password.php" class="text-link">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="primary-btn full">Sign in</button>
 
                 <div class="or-divider"><span>or</span></div>
 
-                <a class="ghost-btn" href="/login.php?notice=google">Continue with Google</a>
+                <a class="ghost-btn" href="<?= baseUrl() ?>/login.php?notice=google">Continue with Google</a>
             </form>
 
-            <p class="auth-footnote">Don't have an account? <a href="/register.php" class="text-link">Create an account</a></p>
+            <p class="auth-footnote">Don't have an account? <a href="<?= baseUrl() ?>/register.php" class="text-link">Create an account</a></p>
 
-            <a href="/index.php" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 16px;">← Back to home</a>
+            <a href="<?= baseUrl() ?>/index.php" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 16px;">← Back to home</a>
         </div>
     </section>
 </div>

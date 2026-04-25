@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $passwordHash
                     ]);
 
-                    header('Location: /login.php');
+                    header('Location: ' . baseUrl() . '/login.php');
                     exit;
                 }
             } catch (Throwable $e) {
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 viewBegin('auth', authLayoutData('Create Account'));
 ?>
     <section class="auth-brand-panel">
-        <a href="/index.php" class="brand hero-brand">
+        <a href="<?= baseUrl() ?>/index.php" class="brand hero-brand">
             <img src="<?= baseUrl() ?>/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
         <div class="hero-copy">
@@ -152,7 +152,7 @@ viewBegin('auth', authLayoutData('Create Account'));
             <button type="submit" class="primary-btn full">Create account</button>
         </form>
 
-        <p class="auth-footnote">Already have an account? <a href="/login.php" class="text-link">Sign in</a></p>
+        <p class="auth-footnote">Already have an account? <a href="<?= baseUrl() ?>/login.php" class="text-link">Sign in</a></p>
     <?php viewAuthFormPanelEnd(); ?>
 
 <script>

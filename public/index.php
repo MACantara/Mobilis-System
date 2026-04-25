@@ -12,7 +12,7 @@ if (isAuthenticated()) {
 viewBegin('landing', ['title' => 'Mobilis | Smarter Vehicle Rental']);
 ?>
     <nav class="landing-nav">
-        <a href="/index.php" class="brand">
+        <a href="<?= baseUrl() ?>/index.php" class="brand">
             <img src="<?= baseUrl() ?>/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">
         </a>
         <div class="landing-nav-center">
@@ -21,8 +21,8 @@ viewBegin('landing', ['title' => 'Mobilis | Smarter Vehicle Rental']);
             <a href="#team" class="landing-nav-tab">Team</a>
         </div>
         <div class="landing-nav-links">
-            <a href="/login.php" class="landing-nav-link subtle">Sign in</a>
-            <a href="/register.php" class="landing-nav-link primary">Register</a>
+            <a href="<?= baseUrl() ?>/login.php" class="landing-nav-link subtle">Sign in</a>
+            <a href="<?= baseUrl() ?>/register.php" class="landing-nav-link primary">Register</a>
         </div>
     </nav>
 
@@ -33,8 +33,8 @@ viewBegin('landing', ['title' => 'Mobilis | Smarter Vehicle Rental']);
                 <h2>Book faster.<br>Travel <span class="landing-accent">smarter.</span></h2>
                 <p>Mobilis helps customers reserve trusted vehicles, monitor booking status in real time, and get transparent billing from pickup to return.</p>
                 <div class="landing-hero-actions">
-                    <a href="/register.php" class="primary-btn">Start your journey</a>
-                    <a href="/login.php" class="ghost-btn">I already have an account</a>
+                    <a href="<?= baseUrl() ?>/register.php" class="primary-btn">Start your journey</a>
+                    <a href="<?= baseUrl() ?>/login.php" class="ghost-btn">I already have an account</a>
                 </div>
             </div>
 
@@ -149,8 +149,8 @@ viewBegin('landing', ['title' => 'Mobilis | Smarter Vehicle Rental']);
         <h3>Ready to book your next vehicle?</h3>
         <p>Create your account today and get access to real-time booking and payment updates.</p>
         <div class="landing-hero-actions">
-            <a href="/register.php" class="primary-btn">Create account</a>
-            <a href="/login.php" class="ghost-btn">Sign in</a>
+            <a href="<?= baseUrl() ?>/register.php" class="primary-btn">Create account</a>
+            <a href="<?= baseUrl() ?>/login.php" class="ghost-btn">Sign in</a>
         </div>
     </section>
 

@@ -121,7 +121,7 @@ if (!function_exists('viewAuthBrandPanel')) {
     function viewAuthBrandPanel(string $heading, string $description): void
     {
         echo '<section class="auth-brand-panel">';
-        echo '<a href="/index.php" class="brand hero-brand">';
+        echo '<a href="' . baseUrl() . '/index.php" class="brand hero-brand">';
         echo '<img src="' . baseUrl() . '/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
         echo '</a>';
         echo '<div class="hero-copy">';
@@ -152,7 +152,7 @@ if (!function_exists('viewErrorBrandPanel')) {
     function viewErrorBrandPanel(string $heading, string $description): void
     {
         echo '<section class="auth-brand-panel">';
-        echo '<a href="/index.php" class="brand hero-brand">';
+        echo '<a href="' . baseUrl() . '/index.php" class="brand hero-brand">';
         echo '<img src="' . baseUrl() . '/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
         echo '</a>';
         echo '<div class="hero-copy">';
@@ -173,9 +173,9 @@ if (!function_exists('viewErrorFormPanel')) {
         echo '<p>' . htmlspecialchars($message) . '</p>';
         echo '<div style="margin-top: 24px;">';
         echo '<a href="' . htmlspecialchars($backUrl) . '" class="primary-btn full">Go to dashboard</a>';
-        echo '<a href="/" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Go to home</a>';
+        echo '<a href="' . baseUrl() . '/" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Go to home</a>';
         if ($showSignOut) {
-            echo '<a href="/logout.php" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Sign out</a>';
+            echo '<a href="' . baseUrl() . '/logout.php" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Sign out</a>';
         }
         echo '</div>';
         echo '</div>';

@@ -3,5 +3,5 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../app/bootstrap.php';
 logoutUser();
-header('Location: /login.php');
+header('Location: ' . baseUrl() . '/login.php');
 exit;

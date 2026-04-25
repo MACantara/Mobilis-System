@@ -91,7 +91,7 @@ if (!function_exists('requireAuth')) {
         $user = currentUser();
 
         if ($user === null) {
-            header('Location: /login.php');
+            header('Location: ' . baseUrl() . '/login.php');
             exit;
         }
 
@@ -102,7 +102,7 @@ if (!function_exists('requireAuth')) {
             if ($homePath !== '' && $homePath !== $currentPath) {
                 header('Location: ' . $homePath);
             } else {
-                header('Location: /errors/403.php');
+                header('Location: ' . baseUrl() . '/errors/403.php');
             }
             exit;
         }
