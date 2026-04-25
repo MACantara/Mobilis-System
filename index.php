@@ -42,7 +42,26 @@ $realRequested = realpath($requestedFile);
 $realPublic = realpath($publicDir);
 if ($realRequested === false || strpos($realRequested, $realPublic) !== 0) {
     http_response_code(403);
-    echo 'Forbidden';
+    header('Location: ' . $basePath . '/errors/403.php');
+    exit;
+}
+
+// Security: block sensitive files and patterns
+$blockedPatterns = ['.env', '.git', 'composer.json', 'composer.lock', 'package.json', 'package-lock.json', 'docker-compose.yml', 'docker-compose.yaml', 'Dockerfile'];
+$blockedExtensions = ['sql', 'log', 'md', 'yml', 'yaml', 'json', 'xml', 'ini', 'conf', 'config'];
+
+foreach ($blockedPatterns as $pattern) {
+    if (strpos($path, $pattern) !== false) {
+        http_response_code(403);
+        header('Location: ' . $basePath . '/errors/403.php');
+        exit;
+    }
+}
+
+$extension = strtolower(pathinfo($requestedFile, PATHINFO_EXTENSION));
+if (in_array($extension, $blockedExtensions, true)) {
+    http_response_code(403);
+    header('Location: ' . $basePath . '/errors/403.php');
     exit;
 }
 
@@ -55,7 +74,7 @@ if (!file_exists($requestedFile)) {
     
     if (!file_exists($requestedFile)) {
         http_response_code(404);
-        echo 'File not found';
+        header('Location: ' . $basePath . '/errors/404.php');
         exit;
     }
 }
@@ -110,5 +129,5 @@ if ($extension === 'php' || is_file($requestedFile)) {
 
 // If we get here, it's a file we can't handle
 http_response_code(403);
-echo 'Forbidden';
+header('Location: ' . $basePath . '/errors/403.php');
 exit;

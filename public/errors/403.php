@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../app/bootstrap.php';
 
-$backUrl = isAuthenticated() ? currentUserHomePath() : '/index.php';
+$backUrl = isAuthenticated() ? currentUserHomePath() : baseUrl() . '/index.php';
 
 http_response_code(403);
 ?>
