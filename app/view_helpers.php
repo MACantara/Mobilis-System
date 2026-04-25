@@ -172,11 +172,7 @@ if (!function_exists('viewErrorFormPanel')) {
         echo '<h3>Error ' . htmlspecialchars((string) $code) . '</h3>';
         echo '<p>' . htmlspecialchars($message) . '</p>';
         echo '<div style="margin-top: 24px;">';
-        echo '<a href="' . htmlspecialchars($backUrl) . '" class="primary-btn full">Go to dashboard</a>';
-        echo '<a href="' . baseUrl() . '/" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Go to home</a>';
-        if ($showSignOut) {
-            echo '<a href="' . baseUrl() . '/logout.php" class="ghost-link button-like" style="display: block; text-align: center; margin-top: 12px;">Sign out</a>';
-        }
+        echo '<a href="' . htmlspecialchars($backUrl) . '" class="primary-btn full">Go back</a>';
         echo '</div>';
         echo '</div>';
         echo '</section>';
