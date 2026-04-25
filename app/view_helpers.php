@@ -122,7 +122,7 @@ if (!function_exists('viewAuthBrandPanel')) {
     {
         echo '<section class="auth-brand-panel">';
         echo '<a href="/index.php" class="brand hero-brand">';
-        echo '<img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
+        echo '<img src="' . baseUrl() . '/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
         echo '</a>';
         echo '<div class="hero-copy">';
         echo '<h2>' . htmlspecialchars($heading) . '</h2>';
@@ -153,7 +153,7 @@ if (!function_exists('viewErrorBrandPanel')) {
     {
         echo '<section class="auth-brand-panel">';
         echo '<a href="/index.php" class="brand hero-brand">';
-        echo '<img src="/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
+        echo '<img src="' . baseUrl() . '/assets/images/logo.png" alt="Mobilis logo" class="brand-logo">';
         echo '</a>';
         echo '<div class="hero-copy">';
         echo '<h2>' . htmlspecialchars($heading) . '</h2>';
