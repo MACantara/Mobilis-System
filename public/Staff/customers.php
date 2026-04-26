@@ -91,18 +91,24 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
             </div>
             <div class="modal-body">
                 <p>Select export format:</p>
-                <div class="export-format-options">
-                    <label>
+                <div class="export-format-cards">
+                    <label class="export-card selected">
                         <input type="radio" name="export-format" value="csv" checked>
-                        <span>📄 CSV</span>
+                        <div class="export-card-icon">📄</div>
+                        <div class="export-card-label">CSV</div>
+                        <div class="export-card-desc">Spreadsheet-compatible</div>
                     </label>
-                    <label>
+                    <label class="export-card">
                         <input type="radio" name="export-format" value="xlsx">
-                        <span>📊 Excel (XLSX)</span>
+                        <div class="export-card-icon">📊</div>
+                        <div class="export-card-label">Excel</div>
+                        <div class="export-card-desc">Microsoft Excel format</div>
                     </label>
-                    <label>
+                    <label class="export-card">
                         <input type="radio" name="export-format" value="pdf">
-                        <span>📑 PDF</span>
+                        <div class="export-card-icon">📑</div>
+                        <div class="export-card-label">PDF</div>
+                        <div class="export-card-desc">Print-ready document</div>
                     </label>
                 </div>
             </div>
@@ -118,6 +124,7 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
         const exportButtons = document.querySelectorAll('[data-export-modal]');
         const exportModal = document.getElementById('export-modal');
         const exportConfirmBtn = document.getElementById('export-confirm');
+        const exportCards = document.querySelectorAll('.export-card');
         let currentExportType = '';
 
         exportButtons.forEach(button => {
@@ -129,15 +136,26 @@ viewBegin('app', appLayoutData('Customers', 'customers', [
             });
         });
 
+        exportCards.forEach(card => {
+            card.addEventListener('click', function() {
+                exportCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                }
+            });
+        });
+
         exportConfirmBtn.addEventListener('click', function() {
             const format = document.querySelector('input[name="export-format"]:checked').value;
             const query = exportModal.dataset.exportQuery || '';
-            
+
             let url = `Staff/${currentExportType}-export.php?format=${format}`;
             if (query) {
                 url += '&' + query;
             }
-            
+
             window.location.href = url;
             MobilisModal.close('export-modal');
         });
