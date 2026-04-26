@@ -279,6 +279,101 @@ WHERE NOT EXISTS (
     AND r.notes = seed.notes
 );
 
+-- ── Additional Booking Sample Data for All Customers ───────────
+-- 10+ Past bookings (completed/cancelled, pickup_date < CURDATE())
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 1 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 60 DAY) AS pickup_date, DATE_SUB(CURDATE(), INTERVAL 55 DAY) AS return_date, DATE_SUB(CURDATE(), INTERVAL 55 DAY) AS actual_return, 'completed' AS status, 'Past booking - Maria Reyes' AS notes
+  UNION ALL SELECT 4, 2, DATE_SUB(CURDATE(), INTERVAL 55 DAY), DATE_SUB(CURDATE(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 50 DAY), 'completed', 'Past booking - Maria Reyes'
+  UNION ALL SELECT 5, 3, DATE_SUB(CURDATE(), INTERVAL 50 DAY), DATE_SUB(CURDATE(), INTERVAL 45 DAY), DATE_SUB(CURDATE(), INTERVAL 45 DAY), 'completed', 'Past booking - Juan dela Cruz'
+  UNION ALL SELECT 5, 4, DATE_SUB(CURDATE(), INTERVAL 45 DAY), DATE_SUB(CURDATE(), INTERVAL 40 DAY), DATE_SUB(CURDATE(), INTERVAL 40 DAY), 'completed', 'Past booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 5, DATE_SUB(CURDATE(), INTERVAL 40 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY), DATE_SUB(CURDATE(), INTERVAL 35 DAY), 'completed', 'Past booking - Ana Lim'
+  UNION ALL SELECT 6, 6, DATE_SUB(CURDATE(), INTERVAL 35 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 30 DAY), 'completed', 'Past booking - Ana Lim'
+  UNION ALL SELECT 7, 7, DATE_SUB(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 25 DAY), DATE_SUB(CURDATE(), INTERVAL 25 DAY), 'completed', 'Past booking - Ramon Santos'
+  UNION ALL SELECT 7, 8, DATE_SUB(CURDATE(), INTERVAL 25 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'completed', 'Past booking - Ramon Santos'
+  UNION ALL SELECT 8, 9, DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 15 DAY), 'completed', 'Past booking - Pedro Cruz'
+  UNION ALL SELECT 8, 10, DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'completed', 'Past booking - Pedro Cruz'
+  UNION ALL SELECT 9, 11, DATE_SUB(CURDATE(), INTERVAL 80 DAY), DATE_SUB(CURDATE(), INTERVAL 75 DAY), DATE_SUB(CURDATE(), INTERVAL 75 DAY), 'completed', 'Past booking - Lisa Garcia'
+  UNION ALL SELECT 9, 12, DATE_SUB(CURDATE(), INTERVAL 70 DAY), DATE_SUB(CURDATE(), INTERVAL 65 DAY), DATE_SUB(CURDATE(), INTERVAL 65 DAY), 'completed', 'Past booking - Lisa Garcia'
+  UNION ALL SELECT 10, 13, DATE_SUB(CURDATE(), INTERVAL 65 DAY), DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_SUB(CURDATE(), INTERVAL 60 DAY), 'completed', 'Past booking - Bea Torres'
+  UNION ALL SELECT 10, 14, DATE_SUB(CURDATE(), INTERVAL 58 DAY), DATE_SUB(CURDATE(), INTERVAL 53 DAY), DATE_SUB(CURDATE(), INTERVAL 53 DAY), 'completed', 'Past booking - Bea Torres'
+  UNION ALL SELECT 4, 15, DATE_SUB(CURDATE(), INTERVAL 48 DAY), DATE_SUB(CURDATE(), INTERVAL 43 DAY), NULL, 'cancelled', 'Cancelled booking - Maria Reyes'
+  UNION ALL SELECT 5, 16, DATE_SUB(CURDATE(), INTERVAL 42 DAY), DATE_SUB(CURDATE(), INTERVAL 37 DAY), NULL, 'cancelled', 'Cancelled booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 17, DATE_SUB(CURDATE(), INTERVAL 38 DAY), DATE_SUB(CURDATE(), INTERVAL 33 DAY), NULL, 'cancelled', 'Cancelled booking - Ana Lim'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
+-- 10+ Present bookings (active, pickup_date <= CURDATE() and return_date >= CURDATE())
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 1 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 2 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 3 DAY) AS return_date, NULL AS actual_return, 'active' AS status, 'Present active booking - Maria Reyes' AS notes
+  UNION ALL SELECT 5, 2, DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY), NULL, 'active', 'Present active booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 3, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 DAY), NULL, 'active', 'Present active booking - Ana Lim'
+  UNION ALL SELECT 7, 4, DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Present active booking - Ramon Santos'
+  UNION ALL SELECT 8, 5, DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 1 DAY), NULL, 'active', 'Present active booking - Pedro Cruz'
+  UNION ALL SELECT 9, 6, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Present active booking - Lisa Garcia'
+  UNION ALL SELECT 10, 7, DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 6 DAY), NULL, 'active', 'Present active booking - Bea Torres'
+  UNION ALL SELECT 4, 8, DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 7 DAY), NULL, 'active', 'Present active booking - Maria Reyes'
+  UNION ALL SELECT 5, 9, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 3 DAY), NULL, 'active', 'Present active booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 10, DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY), NULL, 'active', 'Present active booking - Ana Lim'
+  UNION ALL SELECT 7, 11, DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 5 DAY), NULL, 'active', 'Present active booking - Ramon Santos'
+  UNION ALL SELECT 8, 12, DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), NULL, 'active', 'Present active booking - Pedro Cruz'
+  UNION ALL SELECT 9, 13, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 6 DAY), NULL, 'active', 'Present active booking - Lisa Garcia'
+  UNION ALL SELECT 10, 14, DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY), NULL, 'active', 'Present active booking - Bea Torres'
+  UNION ALL SELECT 4, 15, DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 1 DAY), NULL, 'active', 'Present active booking - Maria Reyes'
+  UNION ALL SELECT 5, 16, DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY), NULL, 'active', 'Present active booking - Juan dela Cruz'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
+-- 10+ Future bookings (pending/active, pickup_date > CURDATE())
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 1 AS vehicle_id, DATE_ADD(CURDATE(), INTERVAL 5 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 10 DAY) AS return_date, NULL AS actual_return, 'pending' AS status, 'Future pending booking - Maria Reyes' AS notes
+  UNION ALL SELECT 5, 2, DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 12 DAY), NULL, 'pending', 'Future pending booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 3, DATE_ADD(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY), NULL, 'pending', 'Future pending booking - Ana Lim'
+  UNION ALL SELECT 7, 4, DATE_ADD(CURDATE(), INTERVAL 8 DAY), DATE_ADD(CURDATE(), INTERVAL 13 DAY), NULL, 'pending', 'Future pending booking - Ramon Santos'
+  UNION ALL SELECT 8, 5, DATE_ADD(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 17 DAY), NULL, 'pending', 'Future pending booking - Pedro Cruz'
+  UNION ALL SELECT 9, 6, DATE_ADD(CURDATE(), INTERVAL 6 DAY), DATE_ADD(CURDATE(), INTERVAL 11 DAY), NULL, 'pending', 'Future pending booking - Lisa Garcia'
+  UNION ALL SELECT 10, 7, DATE_ADD(CURDATE(), INTERVAL 9 DAY), DATE_ADD(CURDATE(), INTERVAL 14 DAY), NULL, 'pending', 'Future pending booking - Bea Torres'
+  UNION ALL SELECT 4, 8, DATE_ADD(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), NULL, 'pending', 'Future pending booking - Maria Reyes'
+  UNION ALL SELECT 5, 9, DATE_ADD(CURDATE(), INTERVAL 18 DAY), DATE_ADD(CURDATE(), INTERVAL 23 DAY), NULL, 'pending', 'Future pending booking - Juan dela Cruz'
+  UNION ALL SELECT 6, 10, DATE_ADD(CURDATE(), INTERVAL 20 DAY), DATE_ADD(CURDATE(), INTERVAL 25 DAY), NULL, 'pending', 'Future pending booking - Ana Lim'
+  UNION ALL SELECT 7, 11, DATE_ADD(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 19 DAY), NULL, 'pending', 'Future pending booking - Ramon Santos'
+  UNION ALL SELECT 8, 12, DATE_ADD(CURDATE(), INTERVAL 22 DAY), DATE_ADD(CURDATE(), INTERVAL 27 DAY), NULL, 'pending', 'Future pending booking - Pedro Cruz'
+  UNION ALL SELECT 9, 13, DATE_ADD(CURDATE(), INTERVAL 16 DAY), DATE_ADD(CURDATE(), INTERVAL 21 DAY), NULL, 'pending', 'Future pending booking - Lisa Garcia'
+  UNION ALL SELECT 10, 14, DATE_ADD(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), NULL, 'pending', 'Future pending booking - Bea Torres'
+  UNION ALL SELECT 4, 15, DATE_ADD(CURDATE(), INTERVAL 30 DAY), DATE_ADD(CURDATE(), INTERVAL 35 DAY), NULL, 'pending', 'Future pending booking - Maria Reyes'
+  UNION ALL SELECT 5, 16, DATE_ADD(CURDATE(), INTERVAL 35 DAY), DATE_ADD(CURDATE(), INTERVAL 40 DAY), NULL, 'pending', 'Future pending booking - Juan dela Cruz'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
 -- ── 5. MaintenanceLog ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS MaintenanceLog (
   log_id       INT UNSIGNED   NOT NULL AUTO_INCREMENT,
