@@ -35,6 +35,7 @@ if (!function_exists('dbConnected')) {
             db();
             return true;
         } catch (Throwable $e) {
+            error_log('Database connection failed: ' . $e->getMessage());
             return false;
         }
     }
