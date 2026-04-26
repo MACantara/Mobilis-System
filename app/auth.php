@@ -88,6 +88,16 @@ if (!function_exists('isAuthenticated')) {
 if (!function_exists('requireAuth')) {
     function requireAuth(array $roles = []): void
     {
+        // Check for API key authentication first (for Python service)
+        $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? $_GET['api_key'] ?? null;
+        $validApiKey = 'mobilis-api-key-2024'; // Hardcoded for simplicity
+
+        if ($apiKey === $validApiKey) {
+            // API key is valid, allow access
+            return;
+        }
+
+        // Fall back to session-based authentication
         $user = currentUser();
 
         if ($user === null) {
