@@ -28,17 +28,19 @@ function fetchFromPythonAnalytics(string $function, string $arg = '')
     return $data ?? [];
 }
 
-// Fetch analytics data using Python scripts
-$analytics = fetchFromPythonAnalytics('summary');
-$maintenanceAlerts = fetchFromPythonAnalytics('maintenance_alerts');
-$revenueTrends = fetchFromPythonAnalytics('revenue_trends', 'month');
-$bookingTrends = fetchFromPythonAnalytics('booking_trends', 'month');
-$topCustomers = fetchFromPythonAnalytics('top_customers', '10');
-$vehiclePerformance = fetchFromPythonAnalytics('vehicle_performance');
-$paymentStatusBreakdown = fetchFromPythonAnalytics('payment_status_breakdown');
-$bookingStatusBreakdown = fetchFromPythonAnalytics('booking_status_breakdown');
-$avgRevenuePerBooking = fetchFromPythonAnalytics('average_revenue');
-$revenueByVehicleType = fetchFromPythonAnalytics('revenue_by_vehicle_type');
+// Fetch all analytics data in a single Python call for performance
+$allAnalytics = fetchFromPythonAnalytics('all');
+
+$analytics = $allAnalytics['summary'] ?? [];
+$maintenanceAlerts = $allAnalytics['maintenance_alerts'] ?? [];
+$revenueTrends = $allAnalytics['revenue_trends'] ?? [];
+$bookingTrends = $allAnalytics['booking_trends'] ?? [];
+$topCustomers = $allAnalytics['top_customers'] ?? [];
+$vehiclePerformance = $allAnalytics['vehicle_performance'] ?? [];
+$paymentStatusBreakdown = $allAnalytics['payment_status_breakdown'] ?? [];
+$bookingStatusBreakdown = $allAnalytics['booking_status_breakdown'] ?? [];
+$avgRevenuePerBooking = $allAnalytics['average_revenue'] ?? 0;
+$revenueByVehicleType = $allAnalytics['revenue_by_vehicle_type'] ?? [];
 
 $fleetHealth = (array) ($analytics['fleet_health'] ?? []);
 $bookingBehavior = (array) ($analytics['booking_behavior'] ?? []);

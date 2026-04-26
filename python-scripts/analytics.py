@@ -324,6 +324,21 @@ def get_revenue_by_vehicle_type():
     except Exception as e:
         return []
 
+def get_all_analytics():
+    """Get all analytics data in a single call for performance optimization."""
+    return {
+        'summary': get_analytics_summary(),
+        'maintenance_alerts': get_maintenance_alerts(),
+        'revenue_trends': get_revenue_trends('month'),
+        'booking_trends': get_booking_trends('month'),
+        'top_customers': get_top_customers(10),
+        'vehicle_performance': get_vehicle_performance(),
+        'payment_status_breakdown': get_payment_status_breakdown(),
+        'booking_status_breakdown': get_booking_status_breakdown(),
+        'average_revenue': get_average_revenue_per_booking(),
+        'revenue_by_vehicle_type': get_revenue_by_vehicle_type()
+    }
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({'error': 'No analytics function specified'}))
@@ -342,7 +357,8 @@ def main():
         'payment_status_breakdown': get_payment_status_breakdown,
         'booking_status_breakdown': get_booking_status_breakdown,
         'average_revenue': get_average_revenue_per_booking,
-        'revenue_by_vehicle_type': get_revenue_by_vehicle_type
+        'revenue_by_vehicle_type': get_revenue_by_vehicle_type,
+        'all': get_all_analytics
     }
     
     if function_name not in functions:
