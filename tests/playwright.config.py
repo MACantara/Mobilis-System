@@ -28,6 +28,8 @@ def browser_context_args(browser_context_args):
         **browser_context_args,
         "viewport": {"width": 1280, "height": 720},
         "ignore_https_errors": True,
+        "default_navigation_timeout": 5000,
+        "default_timeout": 5000,
     }
 
 @pytest.fixture(scope="function")
@@ -48,7 +50,7 @@ def authenticated_admin_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/login.php")
 
 @pytest.fixture(scope="function")
 def authenticated_staff_page(page: Page):
@@ -61,7 +63,7 @@ def authenticated_staff_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/login.php")
 
 @pytest.fixture(scope="function")
 def authenticated_customer_page(page: Page):
@@ -74,4 +76,4 @@ def authenticated_customer_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/login.php")
