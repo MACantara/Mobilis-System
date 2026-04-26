@@ -4,16 +4,56 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['admin', 'staff']);
 
-$analytics = getAnalyticsSummary();
-$maintenanceAlerts = getOverdueMaintenanceAlerts();
-$revenueTrends = getRevenueByPeriod('month');
-$bookingTrends = getBookingTrends('month');
-$topCustomers = getTopCustomersByRevenue(10);
-$vehiclePerformance = getVehiclePerformance();
-$paymentStatusBreakdown = getPaymentStatusBreakdown();
-$bookingStatusBreakdown = getBookingStatusBreakdown();
-$avgRevenuePerBooking = getAverageRevenuePerBooking();
-$revenueByVehicleType = getRevenueByVehicleType();
+// Configuration for Python analytics service
+$pythonServiceUrl = getenv('PYTHON_SERVICE_URL') ?: 'http://localhost:8001';
+
+// Fetch analytics data from Python service
+function fetchFromPython(string $endpoint): array
+{
+    global $pythonServiceUrl;
+    $url = $pythonServiceUrl . $endpoint;
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10,
+            'ignore_errors' => true
+        ]
+    ]);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        return [];
+    }
+    $data = json_decode($response, true);
+    return $data ?? [];
+}
+
+// Try to use Python service, fallback to PHP functions if unavailable
+$pythonAvailable = @file_get_contents($pythonServiceUrl . '/health') !== false;
+
+if ($pythonAvailable) {
+    $analytics = fetchFromPython('/api/analytics/summary');
+    $maintenanceAlerts = fetchFromPython('/api/analytics/maintenance-alerts');
+    $revenueTrends = fetchFromPython('/api/analytics/revenue-trends?period=month');
+    $bookingTrends = fetchFromPython('/api/analytics/booking-trends?period=month');
+    $topCustomers = fetchFromPython('/api/analytics/top-customers?limit=10');
+    $vehiclePerformance = fetchFromPython('/api/analytics/vehicle-performance');
+    $paymentStatusBreakdown = fetchFromPython('/api/analytics/payment-status-breakdown');
+    $bookingStatusBreakdown = fetchFromPython('/api/analytics/booking-status-breakdown');
+    $avgRevenueData = fetchFromPython('/api/analytics/average-revenue-per-booking');
+    $avgRevenuePerBooking = $avgRevenueData['average_revenue'] ?? 0;
+    $revenueByVehicleType = fetchFromPython('/api/analytics/revenue-by-vehicle-type');
+} else {
+    // Fallback to PHP functions
+    $analytics = getAnalyticsSummary();
+    $maintenanceAlerts = getOverdueMaintenanceAlerts();
+    $revenueTrends = getRevenueByPeriod('month');
+    $bookingTrends = getBookingTrends('month');
+    $topCustomers = getTopCustomersByRevenue(10);
+    $vehiclePerformance = getVehiclePerformance();
+    $paymentStatusBreakdown = getPaymentStatusBreakdown();
+    $bookingStatusBreakdown = getBookingStatusBreakdown();
+    $avgRevenuePerBooking = getAverageRevenuePerBooking();
+    $revenueByVehicleType = getRevenueByVehicleType();
+}
 
 $fleetHealth = (array) ($analytics['fleet_health'] ?? []);
 $bookingBehavior = (array) ($analytics['booking_behavior'] ?? []);

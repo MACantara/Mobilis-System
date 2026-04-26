@@ -15,7 +15,7 @@ viewBegin('app', appLayoutData('Payments', 'payments'));
 <section class="card">
     <div class="card-header">
         <h4>Payment ledger</h4>
-        <button type="button" class="primary-btn">Export</button>
+        <button type="button" class="primary-btn" data-export-modal="payments">Export</button>
     </div>
     <div class="table-wrap">
         <table>
@@ -47,5 +47,68 @@ viewBegin('app', appLayoutData('Payments', 'payments'));
         </table>
     </div>
 </section>
+
+<!-- Export Format Selection Modal -->
+<div id="export-modal" class="modal" aria-hidden="true" data-modal>
+    <div class="modal-backdrop" data-modal-close></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Export Data</h3>
+            <button type="button" class="modal-close" data-modal-close aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Select export format:</p>
+            <div class="export-format-options">
+                <label>
+                    <input type="radio" name="export-format" value="csv" checked>
+                    <span>📄 CSV</span>
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="xlsx">
+                    <span>📊 Excel (XLSX)</span>
+                </label>
+                <label>
+                    <input type="radio" name="export-format" value="pdf">
+                    <span>📑 PDF</span>
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ghost-link" data-modal-close>Cancel</button>
+            <button type="button" class="primary-btn" id="export-confirm">Export</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exportButtons = document.querySelectorAll('[data-export-modal]');
+    const exportModal = document.getElementById('export-modal');
+    const exportConfirmBtn = document.getElementById('export-confirm');
+    let currentExportType = '';
+
+    exportButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentExportType = this.dataset.exportModal;
+            const query = this.dataset.exportQuery || '';
+            exportModal.dataset.exportQuery = query;
+            MobilisModal.open('export-modal');
+        });
+    });
+
+    exportConfirmBtn.addEventListener('click', function() {
+        const format = document.querySelector('input[name="export-format"]:checked').value;
+        const query = exportModal.dataset.exportQuery || '';
+        
+        let url = `Staff/${currentExportType}-export.php?format=${format}`;
+        if (query) {
+            url += '&' + query;
+        }
+        
+        window.location.href = url;
+        MobilisModal.close('export-modal');
+    });
+});
+</script>
 <?php viewEnd();
 ?>

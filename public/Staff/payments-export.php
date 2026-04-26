@@ -15,18 +15,20 @@ if (!in_array($format, ['csv', 'xlsx', 'pdf'])) {
 
 // Get filters
 $status = $_GET['status'] ?? '';
-$category = $_GET['category'] ?? '';
+$from = $_GET['from'] ?? '';
+$to = $_GET['to'] ?? '';
 $search = $_GET['q'] ?? '';
 
 // Generate temp filename
 $tempDir = sys_get_temp_dir();
-$filename = 'mobilis-vehicles-' . date('Ymd-His') . ".{$format}";
+$filename = 'mobilis-payments-' . date('Ymd-His') . ".{$format}";
 $tempFile = $tempDir . DIRECTORY_SEPARATOR . $filename;
 
 // Call Python script
-$pythonCmd = escapeshellcmd("python {$pythonScriptPath}/export_vehicles.py " . 
+$pythonCmd = escapeshellcmd("python {$pythonScriptPath}/export_payments.py " . 
     escapeshellarg($status) . ' ' . 
-    escapeshellarg($category) . ' ' . 
+    escapeshellarg($from) . ' ' . 
+    escapeshellarg($to) . ' ' . 
     escapeshellarg($search) . ' ' . 
     escapeshellarg($format) . ' ' . 
     escapeshellarg($tempFile));
@@ -50,56 +52,46 @@ if ($returnCode === 0 && file_exists($tempFile)) {
 }
 
 // Fallback to PHP CSV export
-function vehicleCategoryKeyExport(string $category): string
-{
-    $normalized = strtolower(trim($category));
-    if (str_contains($normalized, 'suv')) {
-        return 'suv';
-    }
-    if (str_contains($normalized, 'sedan')) {
-        return 'sedan';
-    }
-    if (str_contains($normalized, 'van')) {
-        return 'van';
-    }
-    if (str_contains($normalized, 'pickup')) {
-        return 'pickup';
-    }
-    return 'other';
-}
-
 $status = strtolower((string) ($_GET['status'] ?? 'all'));
-$category = strtolower((string) ($_GET['category'] ?? 'all'));
+$from = trim((string) ($_GET['from'] ?? ''));
+$to = trim((string) ($_GET['to'] ?? ''));
 $q = trim((string) ($_GET['q'] ?? ''));
 
+$payments = getInvoices(2000);
+
 $rows = [];
-foreach (getVehicles(2000) as $vehicle) {
-    $vehicleStatus = strtolower((string) ($vehicle['status'] ?? 'available'));
-    $vehicleCategory = vehicleCategoryKeyExport((string) ($vehicle['category_name'] ?? ''));
-
-    if ($status !== 'all' && $vehicleStatus !== $status) {
+foreach ($payments as $payment) {
+    $paymentStatus = strtolower((string) ($payment['payment_status'] ?? ''));
+    
+    if ($status !== 'all' && $paymentStatus !== $status) {
         continue;
     }
-    if ($category !== 'all' && $vehicleCategory !== $category) {
+    
+    $issuedAt = (string) ($payment['issued_at'] ?? '');
+    if ($from !== '' && $issuedAt < $from) {
         continue;
     }
-
+    if ($to !== '' && $issuedAt > $to) {
+        continue;
+    }
+    
     if ($q !== '') {
         $haystack = strtolower(
-            (string) ($vehicle['name'] ?? '') . ' ' .
-            (string) ($vehicle['plate'] ?? '') . ' ' .
-            (string) ($vehicle['category_name'] ?? '')
+            (string) ($payment['invoice_id'] ?? '') . ' ' .
+            (string) ($payment['rental_id'] ?? '') . ' ' .
+            (string) ($payment['customer'] ?? '') . ' ' .
+            (string) ($payment['vehicle'] ?? '')
         );
-
+        
         if (!str_contains($haystack, strtolower($q))) {
             continue;
         }
     }
-
-    $rows[] = $vehicle;
+    
+    $rows[] = $payment;
 }
 
-$filename = 'mobilis-vehicles-' . date('Ymd-His') . '.csv';
+$filename = 'mobilis-payments-' . date('Ymd-His') . '.csv';
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 
@@ -110,19 +102,21 @@ if ($out === false) {
     exit;
 }
 
-fputcsv($out, ['Vehicle ID', 'Name', 'Plate', 'Category', 'Year', 'Color', 'Mileage (km)', 'Status', 'Rate/day']);
+fputcsv($out, ['Invoice ID', 'Rental ID', 'Customer', 'Vehicle', 'Base Amount', 'Late Fee', 'Damage Fee', 'Total', 'Payment Status', 'Payment Method', 'Issued At']);
 
-foreach ($rows as $vehicle) {
+foreach ($rows as $payment) {
     fputcsv($out, [
-        (int) ($vehicle['vehicle_id'] ?? 0),
-        (string) ($vehicle['name'] ?? ''),
-        (string) ($vehicle['plate'] ?? ''),
-        (string) ($vehicle['category_name'] ?? ''),
-        (string) ($vehicle['year'] ?? ''),
-        (string) ($vehicle['color'] ?? ''),
-        (int) ($vehicle['mileage_km'] ?? 0),
-        (string) ($vehicle['status'] ?? ''),
-        (float) ($vehicle['daily_rate'] ?? 0),
+        (int) ($payment['invoice_id'] ?? 0),
+        (int) ($payment['rental_id'] ?? 0),
+        (string) ($payment['customer'] ?? ''),
+        (string) ($payment['vehicle'] ?? ''),
+        (float) ($payment['base_amount'] ?? 0),
+        (float) ($payment['late_fee'] ?? 0),
+        (float) ($payment['damage_fee'] ?? 0),
+        (float) ($payment['total_amount'] ?? 0),
+        (string) ($payment['payment_status'] ?? ''),
+        (string) ($payment['payment_method'] ?? ''),
+        (string) ($payment['issued_at'] ?? ''),
     ]);
 }
 

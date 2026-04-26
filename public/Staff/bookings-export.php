@@ -4,6 +4,54 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['admin', 'staff']);
 
+// Configuration for Python scripts
+$pythonScriptPath = __DIR__ . '/../../python-scripts';
+
+// Get export format (default to CSV)
+$format = $_GET['format'] ?? 'csv';
+if (!in_array($format, ['csv', 'xlsx', 'pdf'])) {
+    $format = 'csv';
+}
+
+// Get filters
+$search = $_GET['q'] ?? '';
+$from = $_GET['from'] ?? '';
+$to = $_GET['to'] ?? '';
+$status = $_GET['status'] ?? '';
+
+// Generate temp filename
+$tempDir = sys_get_temp_dir();
+$filename = 'mobilis-bookings-' . date('Ymd-His') . ".{$format}";
+$tempFile = $tempDir . DIRECTORY_SEPARATOR . $filename;
+
+// Call Python script
+$pythonCmd = escapeshellcmd("python {$pythonScriptPath}/export_bookings.py " . 
+    escapeshellarg($search) . ' ' . 
+    escapeshellarg($from) . ' ' . 
+    escapeshellarg($to) . ' ' . 
+    escapeshellarg($status) . ' ' . 
+    escapeshellarg($format) . ' ' . 
+    escapeshellarg($tempFile));
+
+exec($pythonCmd, $output, $returnCode);
+
+if ($returnCode === 0 && file_exists($tempFile)) {
+    // Set content type based on format
+    $contentTypes = [
+        'csv' => 'text/csv; charset=utf-8',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'pdf' => 'application/pdf'
+    ];
+    
+    header('Content-Type: ' . ($contentTypes[$format] ?? 'text/csv'));
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . filesize($tempFile));
+    readfile($tempFile);
+    unlink($tempFile);
+    exit;
+}
+
+// Fallback to PHP CSV export
 function bookingStatusKeyExport(array $booking): string
 {
     $status = strtolower((string) ($booking['status'] ?? 'pending'));
