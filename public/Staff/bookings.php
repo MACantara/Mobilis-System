@@ -102,6 +102,14 @@ if ($notice === 'action_success') {
 }
 
 $allBookings = getBookings(500);
+
+// Debug: log if database is connected
+if (!dbConnected()) {
+    error_log('Bookings page: Database not connected, using fallback data');
+} else {
+    error_log('Bookings page: Database connected, got ' . count($allBookings) . ' bookings');
+}
+
 $baseFiltered = [];
 
 foreach ($allBookings as $booking) {
@@ -141,6 +149,9 @@ $offset = ($currentPage - 1) * $perPage;
 $pagedBookings = array_slice($statusFiltered, $offset, $perPage);
 $startItem = $totalFiltered > 0 ? $offset + 1 : 0;
 $endItem = min($offset + $perPage, $totalFiltered);
+
+// Debug: log pagination info
+error_log("Bookings page: totalFiltered=$totalFiltered, currentPage=$currentPage, totalPages=$totalPages, pagedBookings=" . count($pagedBookings));
 
 $tabs = [
     'all' => 'All bookings',
@@ -255,7 +266,6 @@ viewBegin('app', appLayoutData('Bookings', 'bookings', [
             </details>
 
             <button type="button" class="ghost-link button-like" data-export-modal="bookings" data-export-query="<?= htmlspecialchars(bookingsQuery(['page' => 1])) ?>">Export</button>
-        </form>
     </div>
 
     <!-- Export Format Selection Modal -->
@@ -338,8 +348,6 @@ viewBegin('app', appLayoutData('Bookings', 'bookings', [
         });
     });
     </script>
-        </form>
-    </div>
 
     <nav class="bookings-tabs" aria-label="Booking status tabs">
         <?php foreach ($tabs as $key => $label): ?>
