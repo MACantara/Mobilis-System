@@ -3,7 +3,7 @@ import sys
 import csv
 from openpyxl import Workbook
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus import Table, TableStyle, SimpleDocTemplate
 from db_client import execute_query
 
@@ -106,13 +106,13 @@ def export_xlsx(data, output_file):
 
 def export_pdf(data, output_file):
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.pagesizes import letter, landscape
     from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_CENTER
     from datetime import datetime
     
-    doc = SimpleDocTemplate(output_file, pagesize=letter, topMargin=72, bottomMargin=36, leftMargin=36, rightMargin=36)
+    doc = SimpleDocTemplate(output_file, pagesize=landscape(letter), topMargin=72, bottomMargin=36, leftMargin=36, rightMargin=36)
     elements = []
     
     styles = getSampleStyleSheet()
