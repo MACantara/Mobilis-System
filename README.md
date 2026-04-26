@@ -212,7 +212,7 @@ DB_PASS=''
 
 ```bash
 cd python-scripts
-pip install openpyxl reportlab pymysql
+pip install -r requirements.txt
 ```
 
 4. Run the PHP development server from the repository root:
