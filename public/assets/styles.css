@@ -3277,3 +3277,62 @@ body.modal-open {
   margin-top: -12px;
   margin-bottom: 16px;
 }
+
+.export-format-cards {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.export-card {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 14px;
+  border: 2px solid #dce6e0;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.export-card:hover {
+  border-color: #b8d4c8;
+  background: #f8fbf9;
+}
+
+.export-card.selected {
+  border-color: #16986d;
+  background: #f0f9f4;
+  box-shadow: 0 0 0 3px rgba(22, 152, 109, 0.12);
+}
+
+.export-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.export-card-icon {
+  font-size: 2rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.export-card-label {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+  text-align: center;
+}
+
+.export-card-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.3;
+}
