@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../app/bootstrap.php';
 requireAuth(['admin', 'staff']);
 
 // Helper function to call Python analytics script
-function fetchFromPythonAnalytics(string $function, string $arg = ''): array
+function fetchFromPythonAnalytics(string $function, string $arg = '')
 {
     $pythonScript = __DIR__ . '/../../python-scripts/analytics.py';
     $command = "python \"$pythonScript\" \"$function\"";
@@ -15,11 +15,16 @@ function fetchFromPythonAnalytics(string $function, string $arg = ''): array
     exec($command, $output, $returnCode);
     
     if ($returnCode !== 0 || empty($output)) {
-        return [];
+        return $function === 'average_revenue' ? 0 : [];
     }
     
     $json = implode('', $output);
     $data = json_decode($json, true);
+    
+    if ($function === 'average_revenue') {
+        return is_float($data) ? $data : ($data['average_revenue'] ?? 0);
+    }
+    
     return $data ?? [];
 }
 
