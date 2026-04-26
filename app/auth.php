@@ -126,10 +126,7 @@ if (!function_exists('roleHomePath')) {
             return baseUrl() . '/Customer/dashboard.php';
         }
 
-        if ($role === 'admin') {
-            return baseUrl() . '/Admin/settings.php';
-        }
-
+        // Both admin and staff go to Staff dashboard
         return baseUrl() . '/Staff/dashboard.php';
     }
 }
