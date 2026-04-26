@@ -32,27 +32,27 @@ def export_xlsx(data, output_file):
     ws = wb.active
     ws.title = "Vehicles"
     
-    # Define styles
+    # Define styles - using Mobilis brand colors
     header_font = Font(bold=True, color="FFFFFF", size=12)
-    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_fill = PatternFill(start_color="16986D", end_color="16986D", fill_type="solid")
     header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     
     thin_border = Border(
-        left=Side(style='thin'),
-        right=Side(style='thin'),
-        top=Side(style='thin'),
-        bottom=Side(style='thin')
+        left=Side(style='thin', color="DBE3DE"),
+        right=Side(style='thin', color="DBE3DE"),
+        top=Side(style='thin', color="DBE3DE"),
+        bottom=Side(style='thin', color="DBE3DE")
     )
     
     # Add title
     ws['A1'] = "Mobilis Vehicle Rental - Vehicles Report"
-    ws['A1'].font = Font(bold=True, size=16, color="4472C4")
+    ws['A1'].font = Font(bold=True, size=16, color="16986D")
     ws.merge_cells('A1:I1')
     ws['A1'].alignment = Alignment(horizontal="center")
     
     # Add generated date
     ws['A2'] = f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
-    ws['A2'].font = Font(italic=True, size=10, color="666666")
+    ws['A2'].font = Font(italic=True, size=10, color="6A7577")
     ws.merge_cells('A2:I2')
     
     # Add headers
@@ -117,12 +117,12 @@ def export_pdf(data, output_file):
     
     styles = getSampleStyleSheet()
     
-    # Custom styles
+    # Custom styles - using Mobilis brand colors
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
         fontSize=18,
-        textColor=colors.HexColor('#4472C4'),
+        textColor=colors.HexColor('#16986D'),
         alignment=TA_CENTER,
         spaceAfter=12
     )
@@ -131,7 +131,7 @@ def export_pdf(data, output_file):
         'CustomSubtitle',
         parent=styles['Normal'],
         fontSize=10,
-        textColor=colors.grey,
+        textColor=colors.HexColor('#6A7577'),
         alignment=TA_CENTER,
         spaceAfter=24
     )
@@ -161,7 +161,7 @@ def export_pdf(data, output_file):
     
     table = Table(table_data, colWidths=[50, 100, 50, 70, 40, 50, 60, 60, 60])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4472C4')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#16986D')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -172,8 +172,8 @@ def export_pdf(data, output_file):
         ('BACKGROUND', (0, 1), (-1, -1), colors.white),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F5F5F5')]),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F6F9F7')]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#DBE3DE')),
         ('LEFTPADDING', (0, 0), (-1, -1), 6),
         ('RIGHTPADDING', (0, 0), (-1, -1), 6),
         ('TOPPADDING', (0, 1), (-1, -1), 8),
