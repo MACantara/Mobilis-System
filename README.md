@@ -1,10 +1,11 @@
-# Mobilis Prototype (PHP + MySQL)
+# Mobilis Prototype (PHP + MySQL + Python)
 
 This is a functional prototype for the Mobilis vehicle rental and fleet management system using the requested stack:
 
 - Frontend: HTML, CSS, JavaScript
 - Backend: PHP
 - Database: MySQL
+- Analytics & Export: Python (FastAPI microservice)
 
 ## Features Included
 
@@ -13,7 +14,8 @@ This is a functional prototype for the Mobilis vehicle rental and fleet manageme
 - Vehicles module with card-based inventory view
 - Bookings module with status chips and totals
 - Customers module with spending and booking summaries
-- Reports module with analytics output
+- Reports module with analytics output (powered by Python microservice)
+- Data export with multiple formats (CSV, Excel, PDF) via Python service
 - Contact Admin form with database persistence
 - Forgot Password request form with database persistence
 - Admin Support Inbox page to review stored support requests
@@ -27,6 +29,7 @@ This is a functional prototype for the Mobilis vehicle rental and fleet manageme
 - Customer payments now support payment method capture (`cash`, `gcash`, `card`, `bank_transfer`) and invoice status transitions.
 - Live tracking API now returns role-aware vehicle snapshots and customer-scoped active rentals.
 - Reporting views were expanded with richer SQL-backed analytics and chart-oriented aggregates.
+- **NEW**: Python microservice for analytics and exports with FastAPI, supporting CSV, Excel (.xlsx), and PDF export formats.
 
 ## Technical Documentation
 
@@ -47,6 +50,7 @@ Comprehensive technical documentation is available in the `docs/` folder:
 - [developer-guide.md](docs/developer-guide.md)
 - [database-quick-reference.md](docs/database-quick-reference.md)
 - [auth-support-db.md](docs/auth-support-db.md)
+- [python-integration.md](docs/python-integration.md) (Python microservice documentation)
 
 ## User Accounts & Authentication
 
@@ -141,6 +145,7 @@ The Customers module provides comprehensive customer management capabilities for
 - `public/forgot-password.php` password reset request form (writes to DB)
 - `public/contact-admin.php` admin contact form (writes to DB)
 - `public/Admin/support-requests.php` admin support inbox for submitted requests
+- `python-service/` Python microservice for analytics and exports (FastAPI)
 - `docs/` technical documentation and database references
 - `mobilis_sql.sql` database schema and seed data
 
@@ -192,17 +197,37 @@ $env:MOBILIS_DB_PORT="3306"
 $env:MOBILIS_DB_NAME="mobilis_db"
 $env:MOBILIS_DB_USER="mobilis_app"
 $env:MOBILIS_DB_PASS="mobilis_app_pass"
+$env:PYTHON_SERVICE_URL="http://localhost:8001"
 ```
 
-3. Run the PHP development server from the repository root:
+**Note for XAMPP users**: If using XAMPP instead of PHP dev server, the PHP backend runs on port 80 by default. Edit `python-service/app/config.py` to set:
+```python
+PHP_API_BASE_URL = "http://localhost"
+PHP_PROJECT_PATH = "Mobilis-System"
+```
+
+The `PHP_PROJECT_PATH` should be set to your project directory name (e.g., `Mobilis-System`) if your XAMPP document root points to the parent directory. If the document root points directly to the project's `public` folder, set `PHP_PROJECT_PATH = ""`. The API key is hardcoded in both `app/auth.php` and `python-service/app/config.py` as `mobilis-api-key-2024`.
+
+3. (Optional) Start the Python analytics service:
+
+```bash
+cd python-service
+pip install -r requirements.txt
+python -m app.main
+```
+
+The Python service will run on http://localhost:8001
+
+4. Run the PHP development server from the repository root:
 
 ```bash
 php -S localhost:8000 -t public
 ```
 
-4. Open the app:
+5. Open the app:
 
 - http://localhost:8000
+- Python API docs (if running): http://localhost:8001/docs
 
 Demo credentials:
 
@@ -221,6 +246,7 @@ This repository is ready for Railway using the included Docker runtime.
 2. In Railway, create a new project and deploy from that GitHub repository.
 3. Add a MySQL service in the same Railway project.
 4. Set environment variables in the app service: use Railway MySQL defaults (`MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`) which are auto-detected; optional override is `MOBILIS_DB_HOST`, `MOBILIS_DB_PORT`, `MOBILIS_DB_NAME`, `MOBILIS_DB_USER`, `MOBILIS_DB_PASS`.
+5. For the Python service, set `PYTHON_SERVICE_URL` to point to the deployed Python service URL.
 
 5. Open the MySQL service shell (or connect from your local machine using Railway connection info) and import schema + seed data:
 
@@ -241,3 +267,5 @@ php -S 0.0.0.0:$PORT -t public
 - This is a prototype intended for coursework and iterative expansion.
 - For production, replace demo-auth with database-backed users and hashed passwords.
 - Add input validation, CSRF protection, and stricter RBAC before deployment.
+- The Python analytics service is optional - the system will fall back to PHP functions if the service is unavailable.
+- See [python-service/README.md](python-service/README.md) for detailed Python service documentation.
