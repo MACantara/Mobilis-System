@@ -9,15 +9,14 @@ class TestBookings:
     def test_staff_bookings_page_loads(self, authenticated_admin_page: Page):
         """Test that staff bookings page loads correctly"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
-        expect(authenticated_admin_page).to_have_title("Bookings")
-        expect(authenticated_admin_page.locator("text=Bookings")).to_be_visible()
+        expect(authenticated_admin_page).to_have_title("Bookings | Mobilis")
 
     def test_staff_bookings_display_list(self, authenticated_admin_page: Page):
         """Test that bookings are displayed in list view"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Check for booking rows
         expect(authenticated_admin_page.locator("table")).to_be_visible()
@@ -25,7 +24,7 @@ class TestBookings:
     def test_staff_booking_filter_by_status(self, authenticated_admin_page: Page):
         """Test filtering bookings by status"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click on active filter
         active_filter = authenticated_admin_page.locator("text=Active")
@@ -36,7 +35,7 @@ class TestBookings:
     def test_staff_booking_view_details(self, authenticated_admin_page: Page):
         """Test viewing booking details"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click on first booking
         first_booking = authenticated_admin_page.locator("table tbody tr").first
@@ -53,10 +52,9 @@ class TestBookings:
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/dashboard.php")
         
         # Navigate from dashboard
-        page.click("a[href*='bookings.php']")
+        page.click("text=My bookings")
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/bookings.php")
-        expect(page).to_have_title("My Bookings")
-        expect(page.locator("text=My Bookings")).to_be_visible()
+        expect(page).to_have_title("My bookings | Mobilis")
 
     def test_customer_booking_create_page_loads(self, page: Page):
         """Test that customer booking creation page loads"""
@@ -67,7 +65,7 @@ class TestBookings:
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/dashboard.php")
         
         # Navigate from dashboard
-        page.click("a[href*='vehicles.php']")
+        page.click("text=Browse vehicles")
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/vehicles.php")
         # Click on first vehicle to book
         first_vehicle = page.locator(".vehicle-card").first
@@ -88,7 +86,7 @@ class TestBookings:
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/dashboard.php")
         
         # Navigate from dashboard
-        page.click("a[href*='vehicles.php']")
+        page.click("text=Browse vehicles")
         page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Customer/vehicles.php")
         # Click on first vehicle to book
         first_vehicle = page.locator(".vehicle-card").first

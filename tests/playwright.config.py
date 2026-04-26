@@ -40,7 +40,7 @@ def page(browser: Browser):
 @pytest.fixture(scope="function")
 def authenticated_admin_page(page: Page):
     """Fixture that provides a page authenticated as admin"""
-    page.goto(f"{BASE_URL}/index.php")
+    page.goto(f"{BASE_URL}{PATH_PREFIX}/login.php")
     page.fill("input[name='email']", ADMIN_EMAIL)
     page.fill("input[name='password']", ADMIN_PASSWORD)
     page.click("button[type='submit']")
@@ -48,12 +48,12 @@ def authenticated_admin_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")
 
 @pytest.fixture(scope="function")
 def authenticated_staff_page(page: Page):
     """Fixture that provides a page authenticated as staff"""
-    page.goto(f"{BASE_URL}/index.php")
+    page.goto(f"{BASE_URL}{PATH_PREFIX}/login.php")
     page.fill("input[name='email']", STAFF_EMAIL)
     page.fill("input[name='password']", STAFF_PASSWORD)
     page.click("button[type='submit']")
@@ -61,12 +61,12 @@ def authenticated_staff_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")
 
 @pytest.fixture(scope="function")
 def authenticated_customer_page(page: Page):
     """Fixture that provides a page authenticated as customer"""
-    page.goto(f"{BASE_URL}/index.php")
+    page.goto(f"{BASE_URL}{PATH_PREFIX}/login.php")
     page.fill("input[name='email']", CUSTOMER_EMAIL)
     page.fill("input[name='password']", CUSTOMER_PASSWORD)
     page.click("button[type='submit']")
@@ -74,4 +74,4 @@ def authenticated_customer_page(page: Page):
     yield page
     # Logout after test
     page.click("a[href*='logout']")
-    page.wait_for_url(f"{BASE_URL}/index.php")
+    page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/index.php")

@@ -9,7 +9,7 @@ class TestExports:
     def test_bookings_export_page_loads(self, authenticated_admin_page: Page):
         """Test that bookings export page loads"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -21,7 +21,7 @@ class TestExports:
     def test_vehicles_export_page_loads(self, authenticated_admin_page: Page):
         """Test that vehicles export page loads"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='vehicles.php']")
+        authenticated_admin_page.click("text=Vehicles")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/vehicles.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -33,7 +33,7 @@ class TestExports:
     def test_customers_export_page_loads(self, authenticated_admin_page: Page):
         """Test that customers export page loads"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='customers.php']")
+        authenticated_admin_page.click("text=Customers")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/customers.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -45,7 +45,7 @@ class TestExports:
     def test_payments_export_page_loads(self, authenticated_admin_page: Page):
         """Test that payments export page loads"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='payments.php']")
+        authenticated_admin_page.click("text=Payments")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/payments.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -57,7 +57,7 @@ class TestExports:
     def test_export_format_selection_csv(self, authenticated_admin_page: Page):
         """Test CSV format selection"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -72,7 +72,7 @@ class TestExports:
     def test_export_format_selection_excel(self, authenticated_admin_page: Page):
         """Test Excel format selection"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -87,7 +87,7 @@ class TestExports:
     def test_export_format_selection_pdf(self, authenticated_admin_page: Page):
         """Test PDF format selection"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
@@ -102,7 +102,7 @@ class TestExports:
     def test_export_submit_button_visible(self, authenticated_admin_page: Page):
         """Test that export submit button is visible"""
         # Navigate from dashboard
-        authenticated_admin_page.click("a[href*='bookings.php']")
+        authenticated_admin_page.click("text=Bookings")
         authenticated_admin_page.wait_for_url(f"{BASE_URL}{PATH_PREFIX}/Staff/bookings.php")
         # Click export button
         export_button = authenticated_admin_page.locator("text=Export")
