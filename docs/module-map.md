@@ -16,19 +16,15 @@
 - `payments.php`: invoice retrieval and payment updates
 - `support.php`: contact/reset queue operations and admin response actions
 - `tracking.php`: simulated live tracking and role-scoped map payloads
-- `analytics.php`: reporting aggregates and recommendations (legacy, superseded by Python service)
+- `analytics.php`: reporting aggregates and recommendations
 
-## Python Service Modules
-- `python-service/app/main.py`: FastAPI application entry point
-- `python-service/app/config.py`: Configuration management
-- `python-service/app/services/php_api_client.py`: HTTP client for PHP APIs
-- `python-service/app/services/analytics_engine.py`: Data processing and analytics logic
-- `python-service/app/services/export_generator.py`: Export generation (CSV, Excel, PDF)
-- `python-service/app/api/dashboard.py`: Dashboard metrics endpoints
-- `python-service/app/api/analytics.py`: Analytics endpoints
-- `python-service/app/api/exports.py`: Export endpoints
-- `python-service/app/models/analytics.py`: Pydantic models for analytics data
-- `python-service/app/models/exports.py`: Pydantic models for export requests
+## Python Export Scripts
+- `python-scripts/export_bookings.py`: Booking data export (CSV, Excel, PDF)
+- `python-scripts/export_customers.py`: Customer data export (CSV, Excel, PDF)
+- `python-scripts/export_vehicles.py`: Vehicle data export (CSV, Excel, PDF)
+- `python-scripts/export_payments.py`: Payment data export (CSV, Excel, PDF)
+- `python-scripts/config.py`: Database configuration for export scripts
+- `python-scripts/db_client.py`: Database connection helper
 
 ## UI/Pages by Audience
 - Public auth/support pages: login/register/forgot-password/contact-admin

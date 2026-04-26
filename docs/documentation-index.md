@@ -6,7 +6,7 @@
 - `docs/module-map.md`
 - `docs/api-reference.md`
 - `docs/developer-guide.md`
-- `docs/python-integration.md` (Python microservice documentation)
+- `docs/python-integration.md` (Python export scripts documentation)
 
 ## Database-Focused Docs
 - `docs/eerd-structure.md`
@@ -28,4 +28,4 @@
 4. `docs/eerd-structure.md`
 5. `docs/data-dictionary.md`
 6. `docs/connectivity-php-mysql.md`
-7. `docs/python-integration.md` (if using Python service)
+7. `docs/python-integration.md` (for export functionality)
