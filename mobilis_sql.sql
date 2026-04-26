@@ -573,6 +573,91 @@ WHERE r.notes IN ('Customer extended booking', 'Short weekend trip', 'Business t
     WHERE i.rental_id = r.rental_id
   );
 
+-- Add today's revenue - update existing invoices to today's date with paid status
+INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status, payment_method, issued_at)
+SELECT seed.rental_id, seed.base_amount, seed.late_fee, seed.damage_fee, seed.total_amount, seed.payment_status, seed.payment_method, seed.issued_at
+FROM (
+  SELECT 412 AS rental_id, 10500.00 AS base_amount, 0.00 AS late_fee, 0.00 AS damage_fee, 10500.00 AS total_amount, 'paid' AS payment_status, 'cash' AS payment_method, TIMESTAMP(CURDATE(), '09:30:00') AS issued_at
+  UNION ALL SELECT 410, 20000.00, 0.00, 0.00, 20000.00, 'paid', 'gcash', TIMESTAMP(CURDATE(), '10:15:00')
+  UNION ALL SELECT 408, 5600.00, 0.00, 0.00, 5600.00, 'paid', 'card', TIMESTAMP(CURDATE(), '11:45:00')
+  UNION ALL SELECT 406, 6400.00, 0.00, 0.00, 6400.00, 'paid', 'bank_transfer', TIMESTAMP(CURDATE(), '14:20:00')
+  UNION ALL SELECT 405, 125100.00, 0.00, 0.00, 125100.00, 'paid', 'cash', TIMESTAMP(CURDATE(), '15:30:00')
+) AS seed
+ON DUPLICATE KEY UPDATE
+  issued_at = VALUES(issued_at),
+  payment_status = VALUES(payment_status),
+  payment_method = VALUES(payment_method);
+
+-- Add more recent rentals from last 30 days for better analytics
+INSERT INTO Rental (user_id, vehicle_id, pickup_date, return_date, actual_return, status, notes)
+SELECT seed.user_id, seed.vehicle_id, seed.pickup_date, seed.return_date, seed.actual_return, seed.status, seed.notes
+FROM (
+  SELECT 4 AS user_id, 1 AS vehicle_id, DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS pickup_date, DATE_ADD(CURDATE(), INTERVAL 2 DAY) AS return_date, NULL AS actual_return, 'active' AS status, 'Recent booking - last 30 days' AS notes
+  UNION ALL SELECT 5, 2, DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 6, 3, DATE_SUB(CURDATE(), INTERVAL 3 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 7, 4, DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 5 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 8, 5, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 6 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 9, 6, DATE_SUB(CURDATE(), INTERVAL 6 DAY), DATE_ADD(CURDATE(), INTERVAL 7 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 10, 7, DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 8 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 4, 8, DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_ADD(CURDATE(), INTERVAL 9 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 5, 9, DATE_SUB(CURDATE(), INTERVAL 9 DAY), DATE_ADD(CURDATE(), INTERVAL 10 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 6, 10, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_ADD(CURDATE(), INTERVAL 11 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 7, 11, DATE_SUB(CURDATE(), INTERVAL 11 DAY), DATE_ADD(CURDATE(), INTERVAL 12 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 8, 12, DATE_SUB(CURDATE(), INTERVAL 12 DAY), DATE_ADD(CURDATE(), INTERVAL 13 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 9, 13, DATE_SUB(CURDATE(), INTERVAL 13 DAY), DATE_ADD(CURDATE(), INTERVAL 14 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 10, 14, DATE_SUB(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 4, 15, DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 16 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 5, 16, DATE_SUB(CURDATE(), INTERVAL 16 DAY), DATE_ADD(CURDATE(), INTERVAL 17 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 6, 17, DATE_SUB(CURDATE(), INTERVAL 17 DAY), DATE_ADD(CURDATE(), INTERVAL 18 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 7, 18, DATE_SUB(CURDATE(), INTERVAL 18 DAY), DATE_ADD(CURDATE(), INTERVAL 19 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 8, 19, DATE_SUB(CURDATE(), INTERVAL 19 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 9, 20, DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_ADD(CURDATE(), INTERVAL 21 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 10, 21, DATE_SUB(CURDATE(), INTERVAL 21 DAY), DATE_ADD(CURDATE(), INTERVAL 22 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 4, 22, DATE_SUB(CURDATE(), INTERVAL 22 DAY), DATE_ADD(CURDATE(), INTERVAL 23 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 5, 23, DATE_SUB(CURDATE(), INTERVAL 23 DAY), DATE_ADD(CURDATE(), INTERVAL 24 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 6, 24, DATE_SUB(CURDATE(), INTERVAL 24 DAY), DATE_ADD(CURDATE(), INTERVAL 25 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 7, 25, DATE_SUB(CURDATE(), INTERVAL 25 DAY), DATE_ADD(CURDATE(), INTERVAL 26 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 8, 26, DATE_SUB(CURDATE(), INTERVAL 26 DAY), DATE_ADD(CURDATE(), INTERVAL 27 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 9, 27, DATE_SUB(CURDATE(), INTERVAL 27 DAY), DATE_ADD(CURDATE(), INTERVAL 28 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 10, 28, DATE_SUB(CURDATE(), INTERVAL 28 DAY), DATE_ADD(CURDATE(), INTERVAL 29 DAY), NULL, 'active', 'Recent booking - last 30 days'
+  UNION ALL SELECT 4, 29, DATE_SUB(CURDATE(), INTERVAL 29 DAY), DATE_ADD(CURDATE(), INTERVAL 30 DAY), NULL, 'active', 'Recent booking - last 30 days'
+) AS seed
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM Rental r
+  WHERE r.user_id = seed.user_id
+    AND r.vehicle_id = seed.vehicle_id
+    AND r.pickup_date = seed.pickup_date
+    AND r.return_date = seed.return_date
+    AND r.notes = seed.notes
+);
+
+-- Add invoices for recent rentals with paid status
+INSERT INTO Invoice (rental_id, base_amount, late_fee, damage_fee, total_amount, payment_status, payment_method, issued_at)
+SELECT
+  r.rental_id,
+  ROUND(vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1), 2) AS base_amount,
+  0.00 AS late_fee,
+  0.00 AS damage_fee,
+  ROUND(vc.daily_rate * GREATEST(DATEDIFF(r.return_date, r.pickup_date), 1), 2) AS total_amount,
+  'paid' AS payment_status,
+  CASE MOD(r.rental_id, 4)
+    WHEN 0 THEN 'card'
+    WHEN 1 THEN 'gcash'
+    WHEN 2 THEN 'bank_transfer'
+    ELSE 'cash'
+  END AS payment_method,
+  TIMESTAMP(DATE_ADD(r.pickup_date, INTERVAL 1 DAY), SEC_TO_TIME(28800 + MOD(r.rental_id, 3600))) AS issued_at
+FROM Rental r
+JOIN Vehicle v ON v.vehicle_id = r.vehicle_id
+JOIN VehicleCategory vc ON vc.category_id = v.category_id
+WHERE r.notes = 'Recent booking - last 30 days'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM Invoice i
+    WHERE i.rental_id = r.rental_id
+  );
+
 -- ── 7. AdminContactMessage ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS AdminContactMessage (
   message_id   INT UNSIGNED NOT NULL AUTO_INCREMENT,

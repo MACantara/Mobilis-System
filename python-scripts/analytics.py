@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
 import sys
 import json
+from decimal import Decimal
 from db_client import execute_query
+
+def decimal_to_float(obj):
+    """Convert Decimal objects to float for JSON serialization"""
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {k: decimal_to_float(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [decimal_to_float(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(decimal_to_float(item) for item in obj)
+    return obj
 
 def get_analytics_summary():
     """Get comprehensive analytics summary including fleet health, booking behavior, financial snapshot, and recommendations."""
@@ -74,7 +87,7 @@ def get_analytics_summary():
             recommendations.append('Average rental duration is long; prepare long-term rental bundles and retention offers.')
         
         from datetime import datetime
-        return {
+        result = {
             'fleet_health': {
                 'total_fleet': total_fleet,
                 'active_rentals': active_rentals,
@@ -93,6 +106,7 @@ def get_analytics_summary():
             'recommendations': recommendations,
             'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
+        return decimal_to_float(result)
     except Exception as e:
         from datetime import datetime
         return {
