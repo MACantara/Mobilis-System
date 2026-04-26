@@ -28,7 +28,7 @@ function fetchFromPythonAnalytics(string $function, string $arg = '')
     return $data ?? [];
 }
 
-// Try to use Python analytics, fallback to PHP functions
+// Fetch analytics data using Python scripts
 $analytics = fetchFromPythonAnalytics('summary');
 $maintenanceAlerts = fetchFromPythonAnalytics('maintenance_alerts');
 $revenueTrends = fetchFromPythonAnalytics('revenue_trends', 'month');
@@ -37,41 +37,8 @@ $topCustomers = fetchFromPythonAnalytics('top_customers', '10');
 $vehiclePerformance = fetchFromPythonAnalytics('vehicle_performance');
 $paymentStatusBreakdown = fetchFromPythonAnalytics('payment_status_breakdown');
 $bookingStatusBreakdown = fetchFromPythonAnalytics('booking_status_breakdown');
-$avgRevenueData = fetchFromPythonAnalytics('average_revenue');
-$avgRevenuePerBooking = is_float($avgRevenueData) ? $avgRevenueData : ($avgRevenueData['average_revenue'] ?? 0);
+$avgRevenuePerBooking = fetchFromPythonAnalytics('average_revenue');
 $revenueByVehicleType = fetchFromPythonAnalytics('revenue_by_vehicle_type');
-
-// Fallback to PHP functions if Python returns empty data
-if (empty($analytics)) {
-    $analytics = getAnalyticsSummary();
-}
-if (empty($maintenanceAlerts)) {
-    $maintenanceAlerts = getOverdueMaintenanceAlerts();
-}
-if (empty($revenueTrends)) {
-    $revenueTrends = getRevenueByPeriod('month');
-}
-if (empty($bookingTrends)) {
-    $bookingTrends = getBookingTrends('month');
-}
-if (empty($topCustomers)) {
-    $topCustomers = getTopCustomersByRevenue(10);
-}
-if (empty($vehiclePerformance)) {
-    $vehiclePerformance = getVehiclePerformance();
-}
-if (empty($paymentStatusBreakdown)) {
-    $paymentStatusBreakdown = getPaymentStatusBreakdown();
-}
-if (empty($bookingStatusBreakdown)) {
-    $bookingStatusBreakdown = getBookingStatusBreakdown();
-}
-if ($avgRevenuePerBooking === 0) {
-    $avgRevenuePerBooking = getAverageRevenuePerBooking();
-}
-if (empty($revenueByVehicleType)) {
-    $revenueByVehicleType = getRevenueByVehicleType();
-}
 
 $fleetHealth = (array) ($analytics['fleet_health'] ?? []);
 $bookingBehavior = (array) ($analytics['booking_behavior'] ?? []);
